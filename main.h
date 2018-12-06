@@ -28,13 +28,13 @@ void keyboard_func(unsigned char key, int x, int y);
 void mouse_func(int button, int state, int x, int y);
 void motion_func(int x, int y);
 void passive_motion_func(int x, int y);
+void output_to_mesh2(void);
 
 void render_string(int x, const int y, void *font, const string &text);
 void draw_objects(void);
 
+
 vector<vertex_3> vertices;
-vector<triangle> tris;
-vector<size_t> final_path;
 
 vertex_3 background_colour(1.0f, 1.0f, 1.0f);
 vertex_3 control_list_colour(0.1f, 0.1f, 0.1f);
@@ -63,3 +63,5 @@ bool mmb_down = false;
 bool rmb_down = false;
 int mouse_x = 0;
 int mouse_y = 0;
+
+

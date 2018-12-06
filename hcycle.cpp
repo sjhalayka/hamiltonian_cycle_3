@@ -1,3 +1,9 @@
+/*
+
+* C++ Program to Find Hamiltonian Cycle
+
+*/
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -6,6 +12,7 @@
 #include <sstream>
 #include <ctime>
 #include <algorithm>
+#include <deque>
 using namespace std;
 
 #include "hcycle.h"
@@ -14,57 +21,442 @@ using namespace std;
 using namespace string_utilities;
 
 
+/*
+* check if the vertex v can be added at index 'pos' in the Hamiltonian Cycle
+*/
+
+bool isSafe(int v, vector<vector<bool> > graph, size_t path[], int pos)
+{
+	if (graph[path[pos - 1]][v] == 0)
+		return false;
+
+	for (int i = 0; i < pos; i++)
+		if (path[i] == v)
+			return false;
+
+	return true;
+}
+
+
+
+/* solve hamiltonian cycle problem */
+bool hamCycleUtil(vector<vector<bool> > graph, size_t path[], int pos)
+{
+	cout << "hamCycleUtil begin" << endl;
+
+	const size_t V = graph[0].size();
+
+	if (pos == V)
+	{
+		if (graph[path[pos - 1]][path[0]] == 1)
+			return true;
+		else
+			return false;
+	}
+
+	for (int v = 1; v < V; v++)
+	{
+		if (isSafe(v, graph, path, pos))
+		{
+			path[pos] = v;
+
+			if (hamCycleUtil(graph, path, pos + 1) == true)
+				return true;
+
+			path[pos] = -1;
+		}
+	}
+
+	cout << "hamCycleUtil end" << endl;
+
+	return false;
+}
+
+void printSolution(int path[], const size_t V)
+{
+	cout << "Solution Exists:";
+	cout << " Following is one Hamiltonian Cycle \n" << endl;
+
+	for (int i = 0; i < V; i++)
+		cout << path[i] << "  ";
+
+	cout << path[0] << endl;
+}
+
+
+/* solves the Hamiltonian Cycle problem using Backtracking.*/
+bool hamCycle(vector<vector<bool> > graph, vector<size_t> &path)
+{
+	const size_t V = graph[0].size();
+
+	path.resize(V);
+
+	for (size_t i = 0; i < V; i++)
+		path[i] = -1;
+
+	path[0] = 0;
+
+	if (hamCycleUtil(graph, &path[0], 1) == false)
+	{
+		cout << "\nSolution does not exist" << endl;
+
+		return false;
+	}
+
+//	printSolution(&path[0], V);
+
+	return true;
+}
+
+
+
+bool are_connected(size_t index0, size_t index1, const vector< vector<bool> > &graph)
+{
+	if (graph[index0][index1] && graph[index1][index0])
+		return true;
+
+	return false;
+}
+
+
+bool is_cycle_hamiltonian(const vector<size_t> &cycle, const vector< vector<bool> > &graph)
+{
+	if (cycle.size() < 2)
+		return false;
+
+	if (cycle[0] != 0 || cycle[cycle.size() - 1] != 0)
+		return false;
+
+	for (size_t i = 0; i < cycle.size() - 1; i++)
+	{
+		bool conn = are_connected(cycle[i], cycle[i + 1], graph);
+
+		if (false == conn)
+			return false;
+	}
+
+	return true;
+}
+
+
+
+void get_splits(const vector<size_t> &cycle, const vector< vector<bool> > &graph, vector<vector<size_t> > &splits)
+{
+	splits.clear();
+
+	for (size_t i = 0; i < cycle.size() - 2; i++)
+	{
+		if (false == are_connected(cycle[i], cycle[i + 1], graph))
+		{
+			for (size_t j = i + 2; j < cycle.size() - 1; j++)
+			{
+				if (true == are_connected(cycle[i], cycle[j], graph))
+				{
+					vector<size_t> temp_cycle = cycle;
+
+					size_t temp = temp_cycle[i + 1];
+					temp_cycle[i + 1] = temp_cycle[j];
+					temp_cycle[j] = temp;
+
+					splits.push_back(temp_cycle);
+				}	
+			}
+
+			if (0 == splits.size())
+				break;
+		}
+	}
+}
+
+void get_ham_or_split(const vector< vector<bool> > &graph, vector<vector<size_t> > &ham_cycles, const vector<size_t> &cycle, const size_t recursion_depth)
+{
+	cout << "begin " << recursion_depth << " " << ham_cycles.size() << endl;
+
+	bool is_ham = is_cycle_hamiltonian(cycle, graph);
+
+	if (is_ham)
+	{
+		ham_cycles.push_back(cycle);
+		return;
+	}
+
+	vector<vector<size_t> > splits;
+
+	get_splits(cycle, graph, splits);
+
+	while (splits.size() > 0)
+	{
+		get_ham_or_split(graph, ham_cycles, splits[splits.size() - 1], recursion_depth + 1);
+		splits.pop_back();
+	}
+
+	cout << "end   " << recursion_depth << endl;
+}
+
+
 int main(int argc, char **argv)
 {
 	srand(static_cast<unsigned int>(time(0)));
 
-	ifstream city_file("cities.csv");
+	ifstream vert_file("vertices.txt");
+
 	string line;
 
-	// Skip first line
-	getline(city_file, line);
+	// Skip first two lines
+	getline(vert_file, line);
+	getline(vert_file, line);
 
-	while (getline(city_file, line))
+	while (getline(vert_file, line))
 	{
 		if ("" == line)
 			continue;
 
-		vector<string> tokens = stl_str_tok(",", line);
+		vector<string> tokens = stl_str_tok(" ", line);
+
+		if (tokens.size() != 3)
+			continue;
+
+		vertex_3 v;
+
+		istringstream iss;
+		iss.str(tokens[0]);
+		iss >> v.x;
+
+		iss.clear();
+		iss.str(tokens[1]);
+		iss >> v.y;
+
+		iss.clear();
+		iss.str(tokens[2]);
+		iss >> v.z;
+
+		vertices.push_back(v);
+	}
+
+	cout << "vertex count " << vertices.size() << endl;
+
+
+
+	cout << "allocating graph" << endl;
+
+	vector<bool> g(vertices.size(), false);
+	vector< vector<bool> > graph(vertices.size(), g);
+
+	cout << "done allocating graph" << endl;
+
+
+
+	ifstream tri_file("triangles.txt");
+
+	// Skip first line
+	getline(tri_file, line);
+
+	while (getline(tri_file, line))
+	{
+		if ("" == line)
+			continue;
+
+		vector<string> tokens = stl_str_tok(" ", line);
 
 		if (tokens.size() != 3)
 			continue;
 
 		istringstream iss;
-		city c;
+
+		size_t tri0_index = 0;
+		size_t tri1_index = 0;
+		size_t tri2_index = 0;
 
 		iss.str(tokens[0]);
-		iss >> c.id;
+		iss >> tri0_index;
 
 		iss.clear();
 		iss.str(tokens[1]);
-		iss >> c.x;
+		iss >> tri1_index;
 
 		iss.clear();
 		iss.str(tokens[2]);
-		iss >> c.y;
+		iss >> tri2_index;
 
-		cities.push_back(c);
+		graph[tri0_index][tri1_index] = true;
+		graph[tri1_index][tri0_index] = true;
+		graph[tri1_index][tri2_index] = true;
+		graph[tri2_index][tri1_index] = true;
+		graph[tri2_index][tri0_index] = true;
+		graph[tri0_index][tri2_index] = true;
+
+		triangle tri;
+
+		tri.vertex[0] = vertices[tri0_index];
+		tri.vertex[1] = vertices[tri1_index];
+		tri.vertex[2] = vertices[tri2_index];
+
+		tris.push_back(tri);
 	}
 
-	populate_globe();
+	cout << "triangle count " << tris.size() << endl;
+
+	size_t count = 0;
+
+
+	vector<size_t> cycle(vertices.size(), 0);
+
+	for (size_t i = 0; i < cycle.size(); i++)
+		cycle[i] = i;
+
+	cycle.push_back(0);
 
 
 
-	// qhull s i < vertices.txt > triangles.txt
+
+	//random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+	//
+	//vector<vector<size_t> > ham_cycles;
+
+	//get_ham_or_split(graph, ham_cycles, cycle, 0);
 
 
-	//cout << "3 rbox " << vertices.size() << " s D3" << endl;
-	//cout << vertices.size() << endl;
 
-	//for(size_t i = 0; i < vertices.size(); i++)
-	//	cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << endl;
+	//return 0;
 
-	// return 0;
+
+
+
+	//while (1)
+	//{
+	//	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+
+	//	if (true == is_cycle_hamiltonian(cycle, graph))
+	//	{
+	//		ofstream out_file("cycle.txt");
+
+	//		out_file << "Path" << endl;
+
+	//		for (size_t i = 0; i < cycle.size(); i++)
+	//			out_file << cycle[i] << endl;
+
+	//		//cout << endl;
+
+	//		break;
+	//	}
+	//	else
+	//		cout << "false" << endl;
+	//}
+
+
+
+
+
+	//while (1)
+	//{
+	//	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+
+	//	for (size_t i = 0; i < cycle.size() - 2; i++)
+	//	{
+	//		if (false == are_connected(cycle[i], cycle[i + 1], graph))
+	//		{
+	//			bool found_swap = false;
+
+	//			vector<size_t> swaps;
+
+	//			for (size_t j = i + 2; j < cycle.size() - 1; j++)
+	//				if (true == are_connected(cycle[i], cycle[j], graph))
+	//					swaps.push_back(j);
+
+	//			if (swaps.size() == 0)
+	//			{
+	//				//cout << " " << (i / float(cycle.size())) << endl;
+	//				break;
+	//			}
+	//			else
+	//			{
+	//				//random_shuffle(swaps.begin(), swaps.end());
+	//				size_t temp = cycle[i + 1];
+	//				cycle[i + 1] = cycle[swaps[0]];
+	//				cycle[swaps[0]] = temp;
+	//			}
+	//		}
+	//	}
+
+
+	//	if (true == is_cycle_hamiltonian(cycle, graph))
+	//	{
+	//		ofstream out_file("cycle.txt");
+
+	//		out_file << "Path" << endl;
+
+	//		for (size_t i = 0; i < cycle.size(); i++)
+	//			out_file << cycle[i] << endl;
+
+	//		//cout << endl;
+
+	//		break;
+	//	}
+	//	else
+	//		cout << "false" << endl;
+	//}
+
+	//final_path = cycle;
+
+
+
+
+
+
+
+
+
+	while (1)
+	{
+		random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+
+		for (size_t i = 0; i < cycle.size() - 2; i++)
+		{
+			if (false == are_connected(cycle[i], cycle[i + 1], graph))
+			{
+				bool found_swap = false;
+
+				for (size_t j = i + 2; j < cycle.size() - 1; j++)
+				{
+					if (true == are_connected(cycle[i], cycle[j], graph))
+					{
+						found_swap = true;
+						size_t temp = cycle[i + 1];
+						cycle[i + 1] = cycle[j];
+						cycle[j] = temp;
+						break;
+					}
+				}
+
+				if (false == found_swap)
+					break;
+			}
+		}
+	
+
+		if (true == is_cycle_hamiltonian(cycle, graph))
+		{
+			ofstream out_file("cycle.txt");
+			
+			out_file << "Path" << endl;
+
+			for (size_t i = 0; i < cycle.size(); i++)
+				out_file << cycle[i] << endl;
+
+			//cout << endl;
+
+			break;
+		}
+		else
+			cout << "false" << endl;
+	}
+
+	final_path = cycle;
+
+
+
+
+
 
 
 
@@ -154,53 +546,74 @@ void render_string(int x, const int y, void *font, const string &text)
 
 void draw_objects(void)
 {
-	glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHT1);
 
 	glPushMatrix();
 
 	glTranslatef(camera_x_transform, camera_y_transform, 0);
 
-	glPointSize(1.0f);
 
-	for (size_t i = 0; i < cities_per_country.size(); i++)
+	glColor3f(1.0f, 0.5f, 0.0f);
+
+	// Could probably stand to use a VBO here.
+	for (size_t i = 0; i < vertices.size(); i++)
 	{
-
-		cout << cities_per_country[i].size() << endl;
-		
-		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
-
-		glBegin(GL_POINTS);
-
-		for (size_t j = 0; j < cities_per_country[i].size(); j++)
-			glVertex3f(cities[cities_per_country[i][j]].x, cities[cities_per_country[i][j]].y, 0.0f);
-
-		glEnd();
+		glPushMatrix();
+		glTranslatef(vertices[i].x, vertices[i].y, vertices[i].z);
+		glutSolidSphere(0.05, 4, 4);
+		glPopMatrix();
 	}
 
-	cout << endl;
+	glBegin(GL_TRIANGLES);
 
+	glColor3f(1.0f, 1.0f, 1.0f);
 
-
-
-	//glPointSize(1.0f);
-	//glColor3f(0, 0, 0);
-
-	//glBegin(GL_POINTS);
-
-	//for (size_t i = 0; i < cities.size(); i++)
-	//	glVertex3f(cities[i].x, cities[i].y, 0.0f);
-
-	//glEnd();
-
-	glPointSize(10.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
-
-	glBegin(GL_POINTS);
-
-	for (size_t i = 0; i < countries.size(); i++)
-		glVertex3f(cities[countries[i].capitol_id].x, cities[countries[i].capitol_id].y, 0.0f);
+	for (size_t i = 0; i < tris.size(); i++)
+	{
+		glVertex3f(tris[i].vertex[2].x, tris[i].vertex[2].y, tris[i].vertex[2].z);
+		glVertex3f(tris[i].vertex[1].x, tris[i].vertex[1].y, tris[i].vertex[1].z);
+		glVertex3f(tris[i].vertex[0].x, tris[i].vertex[0].y, tris[i].vertex[0].z);
+	}
 
 	glEnd();
+
+
+	glDisable(GL_LIGHTING);
+
+
+	glLineWidth(1.0f);
+
+	glBegin(GL_LINES);
+	
+	glColor3f(0.0f, 0.0f, 0.0f);
+
+	for (size_t i = 0; i < tris.size(); i++)
+	{
+		glVertex3f(tris[i].vertex[0].x, tris[i].vertex[0].y, tris[i].vertex[0].z);
+		glVertex3f(tris[i].vertex[1].x, tris[i].vertex[1].y, tris[i].vertex[1].z);
+
+		glVertex3f(tris[i].vertex[1].x, tris[i].vertex[1].y, tris[i].vertex[1].z);
+		glVertex3f(tris[i].vertex[2].x, tris[i].vertex[2].y, tris[i].vertex[2].z);
+
+		glVertex3f(tris[i].vertex[2].x, tris[i].vertex[2].y, tris[i].vertex[2].z);
+		glVertex3f(tris[i].vertex[0].x, tris[i].vertex[0].y, tris[i].vertex[0].z);
+
+	}
+
+	glEnd();
+
+	glLineWidth(3.0f);
+
+	glBegin(GL_LINE_LOOP);
+
+	glColor3f(1.0f, 0.5f, 0.0f);
+
+	for (size_t i = 0; i < final_path.size(); i++)
+		glVertex3f(vertices[final_path[i]].x, vertices[final_path[i]].y, vertices[final_path[i]].z);
+
+	glEnd();
+
+
 
 	// If we do draw the axis at all, make sure not to draw its outline.
 	if (true == draw_axis)
@@ -252,15 +665,15 @@ void display_func(void)
 		glLoadIdentity();
 		gluOrtho2D(0, win_x, 0, win_y);
 		glScalef(1, -1, 1); // Neat. :)
-		glTranslatef(0, static_cast<GLfloat>(-win_y), 0); // Neat. :)
+		glTranslatef(0, -win_y, 0); // Neat. :)
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		glLoadIdentity();
 
 		glColor3f(control_list_colour.x, control_list_colour.y, control_list_colour.z);
 
-		int break_size = 22;
-		int start = 20;
+		size_t break_size = 22;
+		size_t start = 20;
 		ostringstream oss;
 
 		render_string(10, start, GLUT_BITMAP_HELVETICA_18, string("Mouse controls:"));
