@@ -12,6 +12,10 @@
 #include <vector>
 using std::vector;
 
+#include <set>
+using std::set;
+
+
 #include <string>
 using std::string;
 
@@ -28,23 +32,19 @@ class country
 {
 public:
 	size_t id;
-	vector<size_t> province_child_ids;
 	size_t capitol_id;
 };
 
 class province 
 {
 public:
-	size_t country_parent_id;
 	size_t id;
-	vector<size_t> county_child_ids;
 	size_t capitol_id; // city closest to barycentre
 };
 
 class county
 {
 public:
-	size_t province_parent_id;
 	size_t id;
 	size_t capitol_id; // city closest to barycentre
 };
@@ -52,7 +52,6 @@ public:
 class city
 {
 public:
-	size_t county_parent_id;
 	size_t id;
 	float x, y;
 };
@@ -64,46 +63,68 @@ vector<county> counties;
 vector<city> cities;
 
 vector<vector<size_t> > cities_per_country;
+vector<size_t> country_per_city;
 
+vector<vector<size_t> > provinces_per_country;
+vector<size_t> country_per_province;
+vector<vector<size_t> > cities_per_province;
+vector<size_t> province_per_city;
 
+vector<vector<size_t> > counties_per_country;
+vector<size_t> country_per_county;
+vector<vector<size_t> > counties_per_province;
+vector<size_t> province_per_county;
+vector<vector<size_t> > cities_per_county;
+vector<size_t> county_per_city;
 
 vector<vertex_3> country_colours;
-
+vector<city> federal_capitol_cities;
 
 size_t num_countries = 25;
 size_t num_provinces_per_country = 25;
 size_t num_counties_per_province = 25;
 
-void populate_globe(void)
-{
-	vector<city> temp_cities;
 
-	std::mt19937 g(static_cast<unsigned int>(time(0)));
+void get_n_distinct_city_indices(size_t n, vector<size_t> &out, std::mt19937 &g)
+{
 	std::uniform_int_distribution<int> d(0, static_cast<unsigned int>(cities.size() - 1));
 
-
-
+	set<size_t> numbers;
 
 	// make sure there's no duplicates!!!
+	while (numbers.size() < n)
+		numbers.insert(d(g));
+
+	out.clear();
+
+	for (set<size_t>::const_iterator ci = numbers.begin(); ci != numbers.end(); ci++)
+		out.push_back(*ci);
+}
+
+
+void populate_globe(void)
+{
+	vector<size_t> indices;
+
+	std::mt19937 g(static_cast<unsigned int>(time(0)));
+
+	get_n_distinct_city_indices(num_countries, indices, g);
+
 	for (size_t i = 0; i < num_countries; i++)
-		temp_cities.push_back(cities[d(g)]);
-
-
-
-
+		federal_capitol_cities.push_back(cities[indices[i]]);
 
 	for (size_t i = 0; i < num_countries; i++)
 	{
 		country c;
 
 		c.id = i;
-		c.capitol_id = temp_cities[i].id;
+		c.capitol_id = federal_capitol_cities[i].id;
 
 		countries.push_back(c);
 	}
 
 	cities_per_country.resize(num_countries);
-	
+	country_per_city.resize(cities.size());
 	country_colours.resize(num_countries);
 
 	for (size_t i = 0; i < country_colours.size(); i++)
@@ -124,9 +145,9 @@ void populate_globe(void)
 			country_centre.x = cities[countries[j].capitol_id].x;
 			country_centre.y = cities[countries[j].capitol_id].y;
 
-			float distance = sqrtf(pow(country_centre.x - cities[i].x, 2.0f) - pow(country_centre.y - cities[i].y, 2.0f));
+			float distance = sqrtf(powf(country_centre.x - cities[i].x, 2.0f) + powf(country_centre.y - cities[i].y, 2.0f));
 
-			if (distance < closest_distance)
+			if (distance <= closest_distance)
 			{
 				closest_distance = distance;
 				closest_country_id = j;
@@ -134,6 +155,7 @@ void populate_globe(void)
 		}
 
 		cities_per_country[closest_country_id].push_back(cities[i].id);
+		country_per_city[i] = closest_country_id;
 	}
 
 	

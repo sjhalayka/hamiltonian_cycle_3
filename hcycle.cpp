@@ -164,8 +164,7 @@ void draw_objects(void)
 
 	for (size_t i = 0; i < cities_per_country.size(); i++)
 	{
-
-		cout << cities_per_country[i].size() << endl;
+//		cout << cities_per_country[i].size() << endl;
 		
 		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
 
@@ -177,7 +176,7 @@ void draw_objects(void)
 		glEnd();
 	}
 
-	cout << endl;
+//	cout << endl;
 
 
 
@@ -198,7 +197,7 @@ void draw_objects(void)
 	glBegin(GL_POINTS);
 
 	for (size_t i = 0; i < countries.size(); i++)
-		glVertex3f(cities[countries[i].capitol_id].x, cities[countries[i].capitol_id].y, 0.0f);
+		glVertex3f(federal_capitol_cities[i].x, federal_capitol_cities[i].y, 0.0f);
 
 	glEnd();
 
