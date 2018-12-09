@@ -182,7 +182,7 @@ void populate_globe(void)
 
 int main(int argc, char **argv)
 {
-	srand(0);// static_cast<unsigned int>(time(0)));
+	srand(static_cast<unsigned int>(time(0)));
 
 	ifstream city_file("cities.csv");
 	string line;
