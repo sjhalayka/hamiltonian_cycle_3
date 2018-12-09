@@ -60,7 +60,11 @@ public:
 vector<country> countries;
 vector<province> provinces;
 vector<county> counties;
-vector<city> cities;
+vector<city> all_cities;
+vector<vector<city> > provincial_cities;
+vector<vector<vector<city> > > municipal_cities;
+
+
 
 vector<vector<size_t> > cities_per_country;
 vector<size_t> country_per_city;
@@ -77,17 +81,20 @@ vector<size_t> province_per_county;
 vector<vector<size_t> > cities_per_county;
 vector<size_t> county_per_city;
 
+
 vector<vertex_3> country_colours;
 vector<city> federal_capitol_cities;
+vector<vector<city> > provincial_capitol_cities;
+vector<vector<vector<city> > > municipal_capitol_cities;
 
 size_t num_countries = 25;
 size_t num_provinces_per_country = 25;
 size_t num_counties_per_province = 25;
 
 
-void get_n_distinct_city_indices(size_t n, vector<size_t> &out, std::mt19937 &g)
+void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {
-	std::uniform_int_distribution<int> d(0, static_cast<unsigned int>(cities.size() - 1));
+	std::uniform_int_distribution<int> d(0, static_cast<unsigned int>(count - 1));
 
 	set<size_t> numbers;
 
@@ -99,77 +106,6 @@ void get_n_distinct_city_indices(size_t n, vector<size_t> &out, std::mt19937 &g)
 
 	for (set<size_t>::const_iterator ci = numbers.begin(); ci != numbers.end(); ci++)
 		out.push_back(*ci);
-}
-
-
-void populate_globe(void)
-{
-	vector<size_t> indices;
-
-	std::mt19937 g(static_cast<unsigned int>(time(0)));
-
-	get_n_distinct_city_indices(num_countries, indices, g);
-
-	for (size_t i = 0; i < num_countries; i++)
-		federal_capitol_cities.push_back(cities[indices[i]]);
-
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		country c;
-
-		c.id = i;
-		c.capitol_id = federal_capitol_cities[i].id;
-
-		countries.push_back(c);
-	}
-
-	cities_per_country.resize(num_countries);
-	country_per_city.resize(cities.size());
-	country_colours.resize(num_countries);
-
-	for (size_t i = 0; i < country_colours.size(); i++)
-	{
-		country_colours[i].x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		country_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		country_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-	}
-
-	for (size_t i = 0; i < cities.size(); i++)
-	{
-		float closest_distance = 1e20f;
-		size_t closest_country_id = 0;
-
-		for (size_t j = 0; j < countries.size(); j++)
-		{
-			vertex_3 country_centre;
-			country_centre.x = cities[countries[j].capitol_id].x;
-			country_centre.y = cities[countries[j].capitol_id].y;
-
-			float distance = sqrtf(powf(country_centre.x - cities[i].x, 2.0f) + powf(country_centre.y - cities[i].y, 2.0f));
-
-			if (distance <= closest_distance)
-			{
-				closest_distance = distance;
-				closest_country_id = j;
-			}
-		}
-
-		cities_per_country[closest_country_id].push_back(cities[i].id);
-		country_per_city[i] = closest_country_id;
-	}
-
-	
-
-
-
-
-	vector<vector<size_t> > cities_per_province;
-	cities_per_province.resize(num_provinces_per_country);
-
-	vector<vector<size_t> > cities_per_county;
-	cities_per_province.resize(num_counties_per_province);
-
-
 }
 
 
