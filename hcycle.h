@@ -39,14 +39,14 @@ class province
 {
 public:
 	size_t id;
-	size_t capitol_id; // city closest to barycentre
+	size_t capitol_id;
 };
 
 class county
 {
 public:
 	size_t id;
-	size_t capitol_id; // city closest to barycentre
+	size_t capitol_id;
 };
 
 class city
@@ -60,9 +60,18 @@ public:
 vector<country> countries;
 vector<province> provinces;
 vector<county> counties;
+
 vector<city> all_cities;
-vector<vector<city> > provincial_cities;
-vector<vector<vector<city> > > municipal_cities;
+vector<vector<city> > federal_cities;
+vector<vector<vector<city> > > provincial_cities;
+vector<vector<vector<vector<city> > > > municipal_cities;
+
+vector<vertex_3> country_colours;
+vector<vertex_3> province_colours;
+
+vector<city> federal_capitol_cities;
+vector<vector<city> > provincial_capitol_cities;
+vector<vector<vector<city> > > municipal_capitol_cities;
 
 
 
@@ -82,10 +91,6 @@ vector<vector<size_t> > cities_per_county;
 vector<size_t> county_per_city;
 
 
-vector<vertex_3> country_colours;
-vector<city> federal_capitol_cities;
-vector<vector<city> > provincial_capitol_cities;
-vector<vector<vector<city> > > municipal_capitol_cities;
 
 size_t num_countries = 25;
 size_t num_provinces_per_country = 25;
@@ -98,7 +103,7 @@ void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt
 
 	set<size_t> numbers;
 
-	// make sure there's no duplicates!!!
+	// make sure there are no duplicates
 	while (numbers.size() < n)
 		numbers.insert(d(g));
 
@@ -122,7 +127,8 @@ void motion_func(int x, int y);
 void passive_motion_func(int x, int y);
 
 void render_string(int x, const int y, void *font, const string &text);
-void draw_objects(void);
+
+
 
 vertex_3 background_colour(1.0f, 1.0f, 1.0f);
 vertex_3 control_list_colour(0.1f, 0.1f, 0.1f);
@@ -151,3 +157,139 @@ bool mmb_down = false;
 bool rmb_down = false;
 int mouse_x = 0;
 int mouse_y = 0;
+
+
+
+void draw_objects(void)
+{
+	glDisable(GL_LIGHTING);
+
+	glPushMatrix();
+
+	glTranslatef(camera_x_transform, camera_y_transform, 0);
+
+	glPointSize(1.0f);
+
+
+	//cout << federal_cities.size() << endl;
+
+	//	for (size_t i = 0; i < federal_cities.size(); i++)
+	//	{
+	//		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
+	//
+	//		glBegin(GL_POINTS);
+	//
+	////		cout << "  " << federal_cities[i].size() << endl;
+	//
+	//		for (size_t j = 0; j < federal_cities[i].size(); j++)
+	//			glVertex3f(federal_cities[i][j].x, federal_cities[i][j].y, 0.0f);
+	//
+	//		glEnd();
+	//	}
+
+	glPointSize(1.0f);
+
+	size_t colour_index = 0;
+
+	for (size_t i = 0; i < provincial_cities.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_cities[i].size(); j++)
+		{
+			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+			colour_index++;
+
+			glBegin(GL_POINTS);
+
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+				glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
+
+			glEnd();
+		}
+	}
+
+
+
+
+	//	for (size_t i = 0; i < cities_per_country.size(); i++)
+	//	{
+	////		cout << cities_per_country[i].size() << endl;
+	//		
+	//		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
+	//
+	//		glBegin(GL_POINTS);
+	//
+	//		for (size_t j = 0; j < cities_per_country[i].size(); j++)
+	//			glVertex3f(federal_cities[cities_per_country[i][j]].x, federal_cities[cities_per_country[i][j]].y, 0.0f);
+	//
+	//		glEnd();
+	//	}
+
+	//	cout << endl;
+
+
+
+
+	//glPointSize(1.0f);
+	//glColor3f(0, 0, 0);
+
+	//glBegin(GL_POINTS);
+
+	//for (size_t i = 0; i < cities.size(); i++)
+	//	glVertex3f(cities[i].x, cities[i].y, 0.0f);
+
+	//glEnd();
+
+	glPointSize(10.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
+
+	glBegin(GL_POINTS);
+
+	for (size_t i = 0; i < countries.size(); i++)
+		glVertex3f(federal_capitol_cities[i].x, federal_capitol_cities[i].y, 0.0f);
+
+	glEnd();
+
+
+	glPointSize(5.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
+
+	glBegin(GL_POINTS);
+
+	for (size_t i = 0; i < num_countries; i++)
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
+
+	glEnd();
+
+
+
+	// If we do draw the axis at all, make sure not to draw its outline.
+	if (true == draw_axis)
+	{
+		glLineWidth(1.0f);
+
+		glBegin(GL_LINES);
+
+		glColor3f(1, 0, 0);
+		glVertex3f(0, 0, 0);
+		glVertex3f(1, 0, 0);
+		glColor3f(0, 1, 0);
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, 1, 0);
+		glColor3f(0, 0, 1);
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, 0, 1);
+
+		glColor3f(0.5, 0.5, 0.5);
+		glVertex3f(0, 0, 0);
+		glVertex3f(-1, 0, 0);
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, -1, 0);
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, 0, -1);
+
+		glEnd();
+	}
+
+	glPopMatrix();
+}

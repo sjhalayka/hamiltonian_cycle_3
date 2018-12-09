@@ -23,11 +23,14 @@ void populate_globe(void)
 	// Break up into countries
 	vector<size_t> indices;
 
+	// Get 25 distinct city ids
 	get_n_distinct_indices(num_countries, all_cities.size(), indices, g);
 
+	// Fill federal capitols
 	for (size_t i = 0; i < num_countries; i++)
 		federal_capitol_cities.push_back(all_cities[indices[i]]);
 
+	// Store countries
 	for (size_t i = 0; i < num_countries; i++)
 	{
 		country c;
@@ -38,20 +41,24 @@ void populate_globe(void)
 		countries.push_back(c);
 	}
 
-	cities_per_country.resize(num_countries);
-	country_per_city.resize(all_cities.size());
+	// Allocate room for 25 vectors
+	federal_cities.resize(num_countries);
 
+	// For each city in the world
 	for (size_t i = 0; i < all_cities.size(); i++)
 	{
 		float closest_distance = 1e20f;
 		size_t closest_country_id = 0;
 
+		// For each country
 		for (size_t j = 0; j < countries.size(); j++)
 		{
+			// Find federal capitol location
 			vertex_3 country_centre;
 			country_centre.x = all_cities[countries[j].capitol_id].x;
 			country_centre.y = all_cities[countries[j].capitol_id].y;
 
+			// Measure distance, finding the shortest distance
 			float distance = sqrtf(powf(country_centre.x - all_cities[i].x, 2.0f) + powf(country_centre.y - all_cities[i].y, 2.0f));
 
 			if (distance <= closest_distance)
@@ -61,25 +68,25 @@ void populate_globe(void)
 			}
 		}
 
-		cities_per_country[closest_country_id].push_back(all_cities[i].id);
-		country_per_city[i] = closest_country_id;
+		// Populate federal cities breakdown
+		federal_cities[closest_country_id].push_back(all_cities[i]);
 	}
 
 	// Break up into provinces
-	provincial_capitol_cities.resize(num_countries);
-	provincial_cities.resize(num_countries);
 	size_t running_province_id = 0;
 
+	provincial_capitol_cities.resize(num_provinces_per_country);
+
+	// For each country
 	for (size_t i = 0; i < num_countries; i++)
 	{
-		for (size_t j = 0; j < cities_per_country[i].size(); j++)
-			provincial_cities[i].push_back(all_cities[cities_per_country[i][j]]);
+		get_n_distinct_indices(num_provinces_per_country, federal_cities[i].size(), indices, g);
 
-		get_n_distinct_indices(num_provinces_per_country, provincial_cities[i].size(), indices, g);
-
+		// Fill provincial capitols
 		for (size_t j = 0; j < num_provinces_per_country; j++)
-			provincial_capitol_cities[i].push_back(provincial_cities[i][indices[j]]);
+			provincial_capitol_cities[i].push_back(federal_cities[i][indices[j]]);
 
+		// Store provinces
 		for (size_t j = 0; j < num_provinces_per_country; j++)
 		{
 			province p;
@@ -91,6 +98,44 @@ void populate_globe(void)
 		}
 	}
 
+	// alloc room for 25x25 vectors
+	provincial_cities.resize(num_countries);
+
+	for (size_t j = 0; j < provincial_cities.size(); j++)
+		provincial_cities[j].resize(num_provinces_per_country);
+
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		// For each city in the country
+		for (size_t j = 0; j < federal_cities[i].size(); j++)
+		{
+			float closest_distance = 1e20f;
+			size_t closest_province_id = 0;
+
+			//cout << provinces.size() << endl;
+
+			// For each province
+			for (size_t k = 0; k < provinces.size(); k++)
+			{
+				// Find provincial capitol location
+				vertex_3 province_centre;
+				province_centre.x = all_cities[provinces[k].capitol_id].x;
+				province_centre.y = all_cities[provinces[k].capitol_id].y;
+
+				// Measure distance, finding the shortest distance
+				float distance = sqrtf(powf(province_centre.x - federal_cities[i][j].x, 2.0f) + powf(province_centre.y - federal_cities[i][j].y, 2.0f));
+
+				if (distance <= closest_distance)
+				{
+					closest_distance = distance;
+					closest_province_id = k;
+				}
+			}
+
+			// Populate provincial cities breakdown
+			provincial_cities[closest_province_id / num_provinces_per_country][closest_province_id % num_provinces_per_country].push_back(federal_cities[i][j]);
+		}
+	}
 
 
 	//vector<vector<size_t> > provinces_per_country;
@@ -118,6 +163,17 @@ void populate_globe(void)
 		country_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 		country_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
+
+	province_colours.resize(num_countries*num_provinces_per_country);
+
+	for (size_t i = 0; i < province_colours.size(); i++)
+	{
+		province_colours[i].x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		province_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+	}
+
+
 }
 
 
@@ -126,7 +182,7 @@ void populate_globe(void)
 
 int main(int argc, char **argv)
 {
-	srand(static_cast<unsigned int>(time(0)));
+	srand(0);// static_cast<unsigned int>(time(0)));
 
 	ifstream city_file("cities.csv");
 	string line;
@@ -261,100 +317,6 @@ void render_string(int x, const int y, void *font, const string &text)
 	}
 }
 // End text drawing code.
-
-void draw_objects(void)
-{
-	glDisable(GL_LIGHTING);
-
-	glPushMatrix();
-
-	glTranslatef(camera_x_transform, camera_y_transform, 0);
-
-	glPointSize(1.0f);
-
-	for (size_t i = 0; i < cities_per_country.size(); i++)
-	{
-//		cout << cities_per_country[i].size() << endl;
-		
-		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
-
-		glBegin(GL_POINTS);
-
-		for (size_t j = 0; j < cities_per_country[i].size(); j++)
-			glVertex3f(all_cities[cities_per_country[i][j]].x, all_cities[cities_per_country[i][j]].y, 0.0f);
-
-		glEnd();
-	}
-
-//	cout << endl;
-
-
-
-
-	//glPointSize(1.0f);
-	//glColor3f(0, 0, 0);
-
-	//glBegin(GL_POINTS);
-
-	//for (size_t i = 0; i < cities.size(); i++)
-	//	glVertex3f(cities[i].x, cities[i].y, 0.0f);
-
-	//glEnd();
-
-	glPointSize(10.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
-
-	glBegin(GL_POINTS);
-
-	for (size_t i = 0; i < countries.size(); i++)
-		glVertex3f(federal_capitol_cities[i].x, federal_capitol_cities[i].y, 0.0f);
-
-	glEnd();
-
-
-	glPointSize(10.0f);
-	glColor3f(1.0f, 0.5f, 0.0f);
-
-	glBegin(GL_POINTS);
-
-	for (size_t i = 0; i < num_countries; i++)
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
-
-	glEnd();
-
-
-
-	// If we do draw the axis at all, make sure not to draw its outline.
-	if (true == draw_axis)
-	{
-		glLineWidth(1.0f);
-
-		glBegin(GL_LINES);
-
-		glColor3f(1, 0, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(1, 0, 0);
-		glColor3f(0, 1, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 1, 0);
-		glColor3f(0, 0, 1);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 0, 1);
-
-		glColor3f(0.5, 0.5, 0.5);
-		glVertex3f(0, 0, 0);
-		glVertex3f(-1, 0, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, -1, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 0, -1);
-
-		glEnd();
-	}
-
-	glPopMatrix();
-}
 
 
 
