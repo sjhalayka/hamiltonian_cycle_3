@@ -61,18 +61,18 @@ vector<country> countries;
 vector<province> provinces;
 vector<municipality> municipalities;
 
-vector<city> all_cities;
-vector<vector<city> > federal_cities;
-vector<vector<vector<city> > > provincial_cities;
-vector<vector<vector<vector<city> > > > municipal_cities;
-
-vector<vertex_3> country_colours;
-vector<vertex_3> province_colours;
-vector<vertex_3> municipality_colours;
+vector<city> all_cities; // cities per world
+vector<vector<city> > federal_cities; // cities per country
+vector<vector<vector<city> > > provincial_cities; // cities per province
+vector<vector<vector<vector<city> > > > municipal_cities; // cities per municipality
 
 vector<city> federal_capitol_cities;
 vector<vector<city> > provincial_capitol_cities;
 vector<vector<vector<city> > > municipal_capitol_cities;
+
+vector<vertex_3> country_colours;
+vector<vertex_3> province_colours;
+vector<vertex_3> municipality_colours;
 
 
 
@@ -101,7 +101,7 @@ size_t num_municipalities_per_province = 25;
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {
 	if (n > count)
-		return;
+		n = count;
 
 	std::uniform_int_distribution<int> d(0, static_cast<unsigned int>(count - 1));
 
@@ -215,23 +215,12 @@ void draw_objects(void)
 	}
 
 
-
-	//glPointSize(1.0f);
-	//glColor3f(0, 0, 0);
-
-	//glBegin(GL_POINTS);
-
-	//for (size_t i = 0; i < cities.size(); i++)
-	//	glVertex3f(cities[i].x, cities[i].y, 0.0f);
-
-	//glEnd();
-
 	glPointSize(10.0f);
 	glColor3f(0.0f, 0.0f, 0.0f);
 
 	glBegin(GL_POINTS);
 
-	for (size_t i = 0; i < countries.size(); i++)
+	for (size_t i = 0; i < federal_capitol_cities.size(); i++)
 		glVertex3f(federal_capitol_cities[i].x, federal_capitol_cities[i].y, 0.0f);
 
 	glEnd();
@@ -242,24 +231,24 @@ void draw_objects(void)
 
 	glBegin(GL_POINTS);
 
-	for (size_t i = 0; i < num_countries; i++)
-		for (size_t j = 0; j < num_provinces_per_country; j++)
+	for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
+		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
 			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
 
 	glEnd();
 
 
-	//glPointSize(2.0f);
-	//glColor3f(0.0f, 0.0f, 0.0f);
+	glPointSize(2.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 
-	//glBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 
-	//for (size_t i = 0; i < num_countries; i++)
-	//	for (size_t j = 0; j < num_provinces_per_country; j++)
-	//		for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-	//			glVertex3f(municipal_capitol_cities[i][j][k].x, municipal_capitol_cities[i][j][k].y, 0.0f);
+	for (size_t i = 0; i < municipal_capitol_cities.size(); i++)
+		for (size_t j = 0; j < municipal_capitol_cities[i].size(); j++)
+			for (size_t k = 0; k < municipal_capitol_cities[i][j].size(); k++)
+				glVertex3f(municipal_capitol_cities[i][j][k].x, municipal_capitol_cities[i][j][k].y, 0.0f);
 
-	//glEnd();
+	glEnd();
 
 	// If we do draw the axis at all, make sure not to draw its outline.
 	if (true == draw_axis)
