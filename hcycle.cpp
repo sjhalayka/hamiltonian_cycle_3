@@ -137,48 +137,9 @@ void populate_globe(void)
 		}
 	}
 
-	// Break up into municipalities
-	// Note: cities per municipality may be less than 25! 
-	// use actual number instead of max_num_municipalities
-	size_t num_municipalities = 0;
 
-	// Break up into municipalities
-	size_t running_municipality_id = 0;
 
-	municipal_capitol_cities.resize(num_countries);
 
-	for (size_t i = 0; i < municipal_capitol_cities.size(); i++)
-		municipal_capitol_cities[i].resize(num_provinces_per_country);
-
-	// For each country
-	for(size_t i = 0; i < num_countries; i++)
-	{
-		// For each province 
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-		{
-			num_municipalities = provincial_cities[i][j].size();
-
-			if(num_municipalities > max_num_municipalities_per_province)
-				num_municipalities = max_num_municipalities_per_province;
-
-			get_n_distinct_indices(num_municipalities, max_num_municipalities_per_province, indices, g);
-
-			// Fill municipal capitols
-			for (size_t k = 0; k < num_municipalities; k++)
-				municipal_capitol_cities[i][j].push_back(provincial_cities[i][j][indices[k]]);
-
-			// Store municipalities
-			for (size_t k = 0; k < num_municipalities; k++)
-			{
-				municipality m;
-
-				m.id = running_municipality_id++;
-				m.capitol_id = municipal_capitol_cities[i][j][k].id;
-
-				municipalities.push_back(m);
-			}
-		}
-	}
 
 
 
@@ -202,7 +163,7 @@ void populate_globe(void)
 		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
 
-	municipality_colours.resize(num_countries*num_provinces_per_country*max_num_municipalities_per_province);
+	municipality_colours.resize(num_countries*num_provinces_per_country*num_municipalities_per_province);
 
 	for (size_t i = 0; i < municipality_colours.size(); i++)
 	{
