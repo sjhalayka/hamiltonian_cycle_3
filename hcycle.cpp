@@ -80,6 +80,7 @@ void populate_globe(void)
 	// For each country
 	for (size_t i = 0; i < num_countries; i++)
 	{
+		// get 25 distinct incides
 		get_n_distinct_indices(num_provinces_per_country, federal_cities[i].size(), indices, g);
 
 		// Fill provincial capitols
@@ -104,6 +105,7 @@ void populate_globe(void)
 	for (size_t j = 0; j < provincial_cities.size(); j++)
 		provincial_cities[j].resize(num_provinces_per_country);
 
+	// For each country
 	for (size_t i = 0; i < num_countries; i++)
 	{
 		// For each city in the country
@@ -111,8 +113,6 @@ void populate_globe(void)
 		{
 			float closest_distance = 1e20f;
 			size_t closest_province_id = 0;
-
-			//cout << provinces.size() << endl;
 
 			// For each province
 			for (size_t k = 0; k < provinces.size(); k++)
@@ -137,19 +137,48 @@ void populate_globe(void)
 		}
 	}
 
+	// Break up into municipalities
+	// Note: cities per municipality may be less than 25! 
+	// use actual number instead of max_num_municipalities
+	size_t num_municipalities = 0;
 
-	//vector<vector<size_t> > provinces_per_country;
-	//vector<size_t> country_per_province;
-	//vector<vector<size_t> > cities_per_province;
-	//vector<size_t> province_per_city;
+	// Break up into municipalities
+	size_t running_municipality_id = 0;
 
+	municipal_capitol_cities.resize(num_countries);
 
-	//vector<vector<size_t> > counties_per_country;
-	//vector<size_t> country_per_county;
-	//vector<vector<size_t> > counties_per_province;
-	//vector<size_t> province_per_county;
-	//vector<vector<size_t> > cities_per_county;
-	//vector<size_t> county_per_city;
+	for (size_t i = 0; i < municipal_capitol_cities.size(); i++)
+		municipal_capitol_cities[i].resize(num_provinces_per_country);
+
+	// For each country
+	for(size_t i = 0; i < num_countries; i++)
+	{
+		// For each province 
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			num_municipalities = provincial_cities[i][j].size();
+
+			if(num_municipalities > max_num_municipalities_per_province)
+				num_municipalities = max_num_municipalities_per_province;
+
+			get_n_distinct_indices(num_municipalities, max_num_municipalities_per_province, indices, g);
+
+			// Fill municipal capitols
+			for (size_t k = 0; k < num_municipalities; k++)
+				municipal_capitol_cities[i][j].push_back(provincial_cities[i][j][indices[k]]);
+
+			// Store municipalities
+			for (size_t k = 0; k < num_municipalities; k++)
+			{
+				municipality m;
+
+				m.id = running_municipality_id++;
+				m.capitol_id = municipal_capitol_cities[i][j][k].id;
+
+				municipalities.push_back(m);
+			}
+		}
+	}
 
 
 
@@ -173,7 +202,14 @@ void populate_globe(void)
 		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
 
+	municipality_colours.resize(num_countries*num_provinces_per_country*max_num_municipalities_per_province);
 
+	for (size_t i = 0; i < municipality_colours.size(); i++)
+	{
+		municipality_colours[i].x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		municipality_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		municipality_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+	}
 }
 
 
