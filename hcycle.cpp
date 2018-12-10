@@ -102,8 +102,8 @@ void populate_globe(void)
 	// alloc room for 25x25 vectors
 	provincial_cities.resize(num_countries);
 
-	for (size_t j = 0; j < provincial_cities.size(); j++)
-		provincial_cities[j].resize(num_provinces_per_country);
+	for (size_t i = 0; i < provincial_cities.size(); i++)
+		provincial_cities[i].resize(num_provinces_per_country);
 
 	// For each country
 	for (size_t i = 0; i < num_countries; i++)
@@ -141,7 +141,6 @@ void populate_globe(void)
 
 
 	// Break up into municipalities
-
 	size_t running_municipality_id = 0;
 
 	municipal_capitol_cities.resize(num_countries);
@@ -152,13 +151,18 @@ void populate_globe(void)
 	// For each country
 	for (size_t i = 0; i < num_countries; i++)
 	{
-		// For each province 
+		// For each province
 		for (size_t j = 0; j < num_provinces_per_country; j++)
 		{
+			// Take into account that the number of cities per municipality 
+			// might be less than the maximum
 			size_t num_municipalities = provincial_cities[i][j].size();
 
-			if (num_municipalities > num_municipalities_per_province)
-				num_municipalities = num_municipalities_per_province;
+			if (num_municipalities > max_num_municipalities_per_province)
+				num_municipalities = max_num_municipalities_per_province;
+
+			//if (num_municipalities < num_municipalities_per_province)
+			//	cout << num_municipalities << endl;
 
 			get_n_distinct_indices(num_municipalities, num_municipalities, indices, g);
 
@@ -178,6 +182,10 @@ void populate_globe(void)
 			}
 		}
 	}
+
+
+
+
 
 	
 
@@ -201,7 +209,7 @@ void populate_globe(void)
 		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
 
-	municipality_colours.resize(num_countries*num_provinces_per_country*num_municipalities_per_province);
+	municipality_colours.resize(num_countries*num_provinces_per_country*max_num_municipalities_per_province);
 
 	for (size_t i = 0; i < municipality_colours.size(); i++)
 	{
