@@ -42,13 +42,6 @@ public:
 	size_t capitol_id;
 };
 
-class municipality
-{
-public:
-	size_t id;
-	size_t capitol_id;
-};
-
 class city
 {
 public:
@@ -59,43 +52,31 @@ public:
 
 vector<country> countries;
 vector<province> provinces;
-vector<municipality> municipalities;
 
 vector<city> all_cities; // cities per world
 vector<vector<city> > federal_cities; // cities per country
 vector<vector<vector<city> > > provincial_cities; // cities per province
-vector<vector<vector<vector<city> > > > municipal_cities; // cities per municipality
 
 vector<city> federal_capitol_cities;
 vector<vector<city> > provincial_capitol_cities;
-vector<vector<vector<city> > > municipal_capitol_cities;
 
 vector<vertex_3> country_colours;
 vector<vertex_3> province_colours;
-vector<vertex_3> municipality_colours;
 
 
 
-//vector<vector<size_t> > cities_per_country;
-//vector<size_t> country_per_city;
-//
-//vector<vector<size_t> > provinces_per_country;
-//vector<size_t> country_per_province;
-//vector<vector<size_t> > cities_per_province;
-//vector<size_t> province_per_city;
-//
-//vector<vector<size_t> > counties_per_country;
-//vector<size_t> country_per_county;
-//vector<vector<size_t> > counties_per_province;
-//vector<size_t> province_per_county;
-//vector<vector<size_t> > cities_per_county;
-//vector<size_t> county_per_city;
+vector<vector<size_t> > cities_per_country;
+vector<size_t> country_per_city;
+
+vector<vector<size_t> > provinces_per_country;
+vector<size_t> country_per_province;
+vector<vector<size_t> > cities_per_province;
+vector<size_t> province_per_city;
 
 
 
-size_t num_countries = 25;
-size_t num_provinces_per_country = 25;
-size_t max_num_municipalities_per_province = 25;
+size_t num_countries = 75;
+size_t num_provinces_per_country = 75;
 
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
@@ -207,55 +188,25 @@ void draw_objects(void)
 
 
 
-	//glPointSize(1.0f);
+	glPointSize(1.0f);
 
-	//size_t colour_index = 0;
+	size_t colour_index = 0;
 
-	//for (size_t i = 0; i < provincial_cities.size(); i++)
-	//{
-	//	for (size_t j = 0; j < provincial_cities[i].size(); j++)
-	//	{
-	//		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-	//		colour_index++;
+	for (size_t i = 0; i < provincial_cities.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_cities[i].size(); j++)
+		{
+			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+			colour_index++;
 
-	//		glBegin(GL_POINTS);
+			glBegin(GL_POINTS);
 
-	//		for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-	//			glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+				glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
 
-	//		glEnd();
-	//	}
-	//}
-
-
-	//glPointSize(4.0f);
-
-	//size_t colour_index = 0;
-
-	//for (size_t i = 0; i < municipal_cities.size(); i++)
-	//{
-	//	for (size_t j = 0; j < municipal_cities[i].size(); j++)
-	//	{
-	//		for (size_t k = 0; k < municipal_cities[i][j].size(); k++)
-	//		{
-	//			//cout << municipal_cities[i][j][k].size() << endl;
-
-	//			glColor3f(municipality_colours[colour_index].x, municipality_colours[colour_index].y, municipality_colours[colour_index].z);
-	//			colour_index++;
-
-	//			glBegin(GL_POINTS);
-
-	//			for (size_t l = 0; l < municipal_cities[i][j][k].size(); l++)
-	//			{
-
-	//				glVertex3f(municipal_cities[i][j][k][l].x, municipal_cities[i][j][k][l].y, 0.0f);
-	//			}
-
-	//			glEnd();
-	//		}
-	//	}
-	//}
-
+			glEnd();
+		}
+	}
 
 
 
@@ -282,17 +233,6 @@ void draw_objects(void)
 	glEnd();
 
 
-	glPointSize(2.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
-
-	glBegin(GL_POINTS);
-
-	for (size_t i = 0; i < municipal_capitol_cities.size(); i++)
-		for (size_t j = 0; j < municipal_capitol_cities[i].size(); j++)
-			for (size_t k = 0; k < municipal_capitol_cities[i][j].size(); k++)
-				glVertex3f(municipal_capitol_cities[i][j][k].x, municipal_capitol_cities[i][j][k].y, 0.0f);
-
-	glEnd();
 
 	// If we do draw the axis at all, make sure not to draw its outline.
 	if (true == draw_axis)
