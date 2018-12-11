@@ -93,9 +93,9 @@ vector<vertex_3> province_colours;
 
 
 
-size_t num_countries = 25;
-size_t num_provinces_per_country = 25;
-size_t max_num_municipalities_per_province = 25;
+size_t num_countries = 60;
+size_t num_provinces_per_country = 60;
+//size_t max_num_municipalities_per_province = 25;
 
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)

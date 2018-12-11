@@ -133,7 +133,7 @@ void populate_globe(void)
 
 			// Populate provincial cities breakdown
 			// Convert federal_cities[closest_country_id].push_back(all_cities[i]); ...
-			provincial_cities[closest_province_id / 25][closest_province_id % 25].push_back(federal_cities[i][j]);
+			provincial_cities[closest_province_id / num_provinces_per_country][closest_province_id % num_provinces_per_country].push_back(federal_cities[i][j]);
 		}
 	}
 
