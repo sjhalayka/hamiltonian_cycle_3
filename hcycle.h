@@ -59,7 +59,7 @@ public:
 
 vector<country> countries;
 vector<province> provinces;
-vector<municipality> municipalities;
+// vector<municipality> municipalities;
 
 vector<city> all_cities; // cities per world
 vector<vector<city> > federal_cities; // cities per country
@@ -76,13 +76,13 @@ vector<vertex_3> province_colours;
 
 
 
-//vector<vector<size_t> > cities_per_country;
-//vector<size_t> country_per_city;
-//
-//vector<vector<size_t> > provinces_per_country;
-//vector<size_t> country_per_province;
-//vector<vector<size_t> > cities_per_province;
-//vector<size_t> province_per_city;
+vector<vector<size_t> > cities_per_country;
+vector<size_t> country_per_city;
+
+vector<vector<size_t> > provinces_per_country;
+vector<size_t> country_per_province;
+vector<vector<size_t> > cities_per_province;
+vector<size_t> province_per_city;
 //
 //vector<vector<size_t> > counties_per_country;
 //vector<size_t> country_per_county;

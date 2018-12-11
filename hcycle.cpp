@@ -72,8 +72,6 @@ void populate_globe(void)
 	}
 
 	// Break up into provinces
-	size_t running_province_id = 0;
-
 	provincial_capitol_cities.resize(num_provinces_per_country);
 
 	// For each country
@@ -91,7 +89,7 @@ void populate_globe(void)
 		{
 			province p;
 
-			p.id = running_province_id++;
+			p.id = i * num_provinces_per_country + j;
 			p.capitol_id = provincial_capitol_cities[i][j].id;
 
 			provinces.push_back(p);
@@ -137,6 +135,37 @@ void populate_globe(void)
 		}
 	}
 
+	// Get LUTs
+	cities_per_country.resize(num_countries);
+	country_per_city.resize(all_cities.size());
+
+	provinces_per_country.resize(num_provinces_per_country);
+	country_per_province.resize(num_countries*num_provinces_per_country);
+
+	cities_per_province.resize(num_countries*num_provinces_per_country);
+	province_per_city.resize(all_cities.size());
+
+	for (size_t i = 0; i < provincial_cities.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_cities[i].size(); j++)
+		{
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+			{
+				size_t country_id = i;
+				size_t provincial_id = i*num_provinces_per_country + j;
+				size_t city_id = provincial_cities[i][j][k].id;
+
+				cities_per_country[country_id].push_back(city_id);
+				country_per_city[city_id] = country_id;
+
+				provinces_per_country[country_id].push_back(provincial_id);
+				country_per_province[provincial_id] = country_id;
+
+				cities_per_province[provincial_id].push_back(city_id);
+				province_per_city[city_id] = provincial_id;
+			}
+		}
+	}
 
 
 	/*
