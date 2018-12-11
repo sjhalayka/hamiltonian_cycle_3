@@ -188,21 +188,21 @@ void draw_objects(void)
 
 
 
-	glPointSize(1.0f);
+	//glPointSize(1.0f);
 
-	for (size_t i = 0; i < federal_cities.size(); i++)
-	{
-		glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
+	//for (size_t i = 0; i < federal_cities.size(); i++)
+	//{
+	//	glColor3f(country_colours[i].x, country_colours[i].y, country_colours[i].z);
 
-		glBegin(GL_POINTS);
+	//	glBegin(GL_POINTS);
 
-		//		cout << "  " << federal_cities[i].size() << endl;
+	//	//		cout << "  " << federal_cities[i].size() << endl;
 
-		for (size_t j = 0; j < federal_cities[i].size(); j++)
-			glVertex3f(federal_cities[i][j].x, federal_cities[i][j].y, 0.0f);
+	//	for (size_t j = 0; j < federal_cities[i].size(); j++)
+	//		glVertex3f(federal_cities[i][j].x, federal_cities[i][j].y, 0.0f);
 
-		glEnd();
-	}
+	//	glEnd();
+	//}
 
 
 
@@ -226,6 +226,37 @@ void draw_objects(void)
 	//		glEnd();
 	//	}
 	//}
+
+
+	//glPointSize(4.0f);
+
+	//size_t colour_index = 0;
+
+	//for (size_t i = 0; i < municipal_cities.size(); i++)
+	//{
+	//	for (size_t j = 0; j < municipal_cities[i].size(); j++)
+	//	{
+	//		for (size_t k = 0; k < municipal_cities[i][j].size(); k++)
+	//		{
+	//			//cout << municipal_cities[i][j][k].size() << endl;
+
+	//			glColor3f(municipality_colours[colour_index].x, municipality_colours[colour_index].y, municipality_colours[colour_index].z);
+	//			colour_index++;
+
+	//			glBegin(GL_POINTS);
+
+	//			for (size_t l = 0; l < municipal_cities[i][j][k].size(); l++)
+	//			{
+
+	//				glVertex3f(municipal_cities[i][j][k][l].x, municipal_cities[i][j][k][l].y, 0.0f);
+	//			}
+
+	//			glEnd();
+	//		}
+	//	}
+	//}
+
+
 
 
 	glPointSize(10.0f);

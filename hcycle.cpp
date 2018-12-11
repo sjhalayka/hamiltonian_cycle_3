@@ -133,7 +133,8 @@ void populate_globe(void)
 			}
 
 			// Populate provincial cities breakdown
-			provincial_cities[closest_province_id / num_provinces_per_country][closest_province_id % num_provinces_per_country].push_back(federal_cities[i][j]);
+			// Convert federal_cities[closest_country_id].push_back(all_cities[i]); ...
+			provincial_cities[i][closest_province_id % 25].push_back(federal_cities[i][j]);
 		}
 	}
 
@@ -183,11 +184,68 @@ void populate_globe(void)
 		}
 	}
 
+	// alloc room for 25x25xn vectors
+	municipal_cities.resize(num_countries);
+
+	for (size_t i = 0; i < municipal_cities.size(); i++)
+		municipal_cities[i].resize(num_provinces_per_country);
+
+	for (size_t i = 0; i < municipal_cities.size(); i++)
+	{
+		for (size_t j = 0; j < municipal_cities[i].size(); j++)
+		{
+			size_t num_municipalities = provincial_cities[i][j].size();
+
+			municipal_cities[i][j].resize(num_municipalities);
+		}
+	}
 
 
+	// For each country
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		// For each province 
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			size_t num_municipalities = provincial_cities[i][j].size();
 
+			// For each city in the province
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+			{
+				float closest_distance = 1e20f;
+				size_t closest_municipality_id = 0;
 
+				// For each municipality
+				for (size_t l = 0; l < municipalities.size(); l++)
+				{
+					// Find municipal capitol location
+					vertex_3 municipality_centre;
+					municipality_centre.x = all_cities[municipalities[l].capitol_id].x;
+					municipality_centre.y = all_cities[municipalities[l].capitol_id].y;
+
+					// Measure distance, finding the shortest distance
+					float distance = sqrtf(powf(municipality_centre.x - provincial_cities[i][j][k].x, 2.0f) + powf(municipality_centre.y - provincial_cities[i][j][k].y, 2.0f));
+
+					if (distance <= closest_distance)
+					{
+						closest_distance = distance;
+						closest_municipality_id = l;
+					}
+				}
+
+				// Populate municipal cities breakdown
+				// Convert federal_cities[closest_country_id].push_back(all_cities[i]); ...
+				//municipal_cities[i][j][closest_municipality_id].push_back(provincial_cities[i][j][k]);
+			}
+		}
+	}
 	
+
+
+
+
+
+
 
 
 
@@ -209,7 +267,7 @@ void populate_globe(void)
 		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
 
-	municipality_colours.resize(num_countries*num_provinces_per_country*max_num_municipalities_per_province);
+	municipality_colours.resize(num_countries*num_provinces_per_country*200000);
 
 	for (size_t i = 0; i < municipality_colours.size(); i++)
 	{
