@@ -269,15 +269,22 @@ void draw_objects(void)
 
 	//glEnd();
 
+	colour_index = 0;
 
 	glPointSize(5.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
 
 	glBegin(GL_POINTS);
 
 	for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
+	{
 		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+		{
+			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+			colour_index++;
+
 			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
+		}
+	}
 
 	glEnd();
 
