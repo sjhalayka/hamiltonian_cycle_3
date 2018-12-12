@@ -139,7 +139,7 @@ void populate_globe(void)
 	cities_per_country.resize(num_countries);
 	country_per_city.resize(all_cities.size());
 
-	provinces_per_country.resize(num_provinces_per_country);
+	provinces_per_country.resize(num_countries);
 	country_per_province.resize(num_countries*num_provinces_per_country);
 
 	cities_per_province.resize(num_countries*num_provinces_per_country);
