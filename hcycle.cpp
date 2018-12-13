@@ -349,10 +349,132 @@ int main(int argc, char **argv)
 		all_cities.push_back(c);
 	}
 
-	//all_cities.resize(2000);
+	all_cities.resize(2000);
 
 
 	populate_globe();
+
+
+	// for each world, make triangulation and graph for vertices of federal capitols
+	
+	// convert federal capitols into a vector of vertices
+	vector<vertex_3> federal_capitol_vertices;
+	
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		vertex_3 v;
+		v.x = federal_capitol_cities[i].x;
+		v.y = federal_capitol_cities[i].y;
+		v.z = 0;
+
+		federal_capitol_vertices.push_back(v);
+	}
+	
+	// write vertices to disk
+	ofstream vfile("vertices.txt");
+
+	vfile << "2 rbox " << federal_capitol_vertices.size() << " D2" << endl;
+	vfile << federal_capitol_vertices.size() << endl;
+
+	for(size_t i = 0; i < federal_capitol_vertices.size(); i++)
+		vfile << federal_capitol_vertices[i].x << " " << federal_capitol_vertices[i].y << endl;
+
+	// run qdelaunay
+	system("qdelaunay s i < vertices.txt > triangles.txt");
+
+	// read triangles from disk
+	// for each triangle, add graph edges
+	vector<bool> g(federal_capitol_vertices.size(), false);
+	vector< vector<bool> > graph(federal_capitol_vertices.size(), g);
+
+
+	ifstream tri_file("triangles.txt");
+
+	// Skip first line
+	getline(tri_file, line);
+
+	while (getline(tri_file, line))
+	{
+		if ("" == line)
+			continue;
+
+		vector<string> tokens = stl_str_tok(" ", line);
+
+		if (tokens.size() != 3)
+			continue;
+
+		istringstream iss;
+
+		size_t tri0_index = 0;
+		size_t tri1_index = 0;
+		size_t tri2_index = 0;
+
+		iss.str(tokens[0]);
+		iss >> tri0_index;
+
+		iss.clear();
+		iss.str(tokens[1]);
+		iss >> tri1_index;
+
+		iss.clear();
+		iss.str(tokens[2]);
+		iss >> tri2_index;
+
+		graph[tri0_index][tri1_index] = true;
+		graph[tri1_index][tri0_index] = true;
+
+
+		graph[tri1_index][tri2_index] = true;
+		graph[tri2_index][tri1_index] = true;
+
+
+		graph[tri2_index][tri0_index] = true;
+		graph[tri0_index][tri2_index] = true;
+
+
+		triangle tri;
+
+		tri.vertex[0] = federal_capitol_vertices[tri0_index];
+		tri.vertex[1] = federal_capitol_vertices[tri1_index];
+		tri.vertex[2] = federal_capitol_vertices[tri2_index];
+
+		federal_capitol_tris.push_back(tri);
+	}
+
+	cout << "triangle count " << federal_capitol_tris.size() << endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// for each country, make triangulation and graph for vertices of provincial capitols
+	// convert provincial capitols into a vector of vector vertices
+	// write vertices to disk
+	// run qdelaunay
+	// read triangles from disk
+	// for each triangle, add graph edges
+
+	// For each country, for each province, make triangulation and graph for vertices of cities 
+
+
+
+//	vector<bool> g(vertices.size(), false);
+//	vector< vector<bool> > graph(vertices.size(), g);
+
+
+
+
 
 
 
