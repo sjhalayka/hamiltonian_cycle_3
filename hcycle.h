@@ -173,48 +173,90 @@ void draw_objects(void)
 	glTranslatef(camera_x_transform, camera_y_transform, 0);
 
 
-
-
-
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glPointSize(1.0f);
 
-	glBegin(GL_POINTS);
 
-	size_t colour_index = 0;
 
-	for (size_t i = 0; i < provinces.size(); i++)
+	size_t country_colour_index = 0;
+
+	for (size_t i = 0; i < countries.size(); i++)
 	{
-		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-		colour_index++;
+		glColor3f(country_colours[country_colour_index].x, country_colours[country_colour_index].y, country_colours[country_colour_index].z);
+		country_colour_index++;
 
-		for (size_t j = 0; j < cities_per_province[i].size(); j++)
+		glBegin(GL_POINTS);
+
+		//for (size_t j = 0; j < cities_per_country[i].size(); j++)
+		//{
+		//	city c = all_cities[cities_per_country[i][j]];
+		//	glVertex3f(c.x, c.y, 0);
+		//}
+
+		glEnd();
+
+		size_t provincial_colour_index = 0;
+
+		for (size_t j = 0; j < provinces_per_country[i].size(); j++)
 		{
-			city c = all_cities[cities_per_province[i][j]];
+			glColor4f(province_colours[provincial_colour_index].x, province_colours[provincial_colour_index].y, province_colours[provincial_colour_index].z, 1.0f);
+			provincial_colour_index++;
+
+			size_t province_index = provinces_per_country[i][j];
+
+			glPointSize(5.0f);
+			
+			glBegin(GL_POINTS);
+
+			city c = all_cities[provinces[province_index].capitol_id];
 			glVertex3f(c.x, c.y, 0);
+
+			glEnd();
+
+			glPointSize(1.0f);
+
+			glBegin(GL_POINTS);
+
+			for (size_t k = 0; k < cities_per_province[province_index].size(); k++)
+			{
+				city c = all_cities[cities_per_province[province_index][k]];
+				glVertex3f(c.x, c.y, 0);
+			}
+
+			glEnd();
 		}
 	}
 
 	glEnd();
 
 
+	glPopMatrix();
 
-	glPointSize(5.0f);
+	return;
 
-	glBegin(GL_POINTS);
 
-	colour_index = 0;
 
-	for (size_t i = 0; i < provinces.size(); i++)
-	{
-		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-		colour_index++;
 
-		city c = all_cities[provinces[i].capitol_id];
-		glVertex3f(c.x, c.y, 0);
-	}
 
-	glEnd();
+
+	//glPointSize(5.0f);
+
+	//glBegin(GL_POINTS);
+
+	//size_t colour_index = 0;
+
+	//for (size_t i = 0; i < provinces.size(); i++)
+	//{
+	//	glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+	//	colour_index++;
+
+	//	city c = all_cities[provinces[i].capitol_id];
+	//	glVertex3f(c.x, c.y, 0);
+	//}
+
+	//glEnd();
 
 
 
@@ -252,25 +294,25 @@ void draw_objects(void)
 
 
 
-	//glPointSize(1.0f);
+	glPointSize(1.0f);
 
-	//size_t colour_index = 0;
+	size_t colour_index = 0;
 
-	//for (size_t i = 0; i < provincial_cities.size(); i++)
-	//{
-	//	for (size_t j = 0; j < provincial_cities[i].size(); j++)
-	//	{
-	//		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-	//		colour_index++;
+	for (size_t i = 0; i < provincial_cities.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_cities[i].size(); j++)
+		{
+			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+			colour_index++;
 
-	//		glBegin(GL_POINTS);
+			glBegin(GL_POINTS);
 
-	//		for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-	//			glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+				glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
 
-	//		glEnd();
-	//	}
-	//}
+			glEnd();
+		}
+	}
 
 
 	//glPointSize(4.0f);
@@ -314,24 +356,24 @@ void draw_objects(void)
 
 	//glEnd();
 
-	//colour_index = 0;
+	colour_index = 0;
 
-	//glPointSize(5.0f);
+	glPointSize(5.0f);
 
-	//glBegin(GL_POINTS);
+	glBegin(GL_POINTS);
 
-	//for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
-	//{
-	//	for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
-	//	{
-	//		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-	//		colour_index++;
+	for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+		{
+			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+			colour_index++;
 
-	//		glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
-	//	}
-	//}
+			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
+		}
+	}
 
-	//glEnd();
+	glEnd();
 
 
 	//glPointSize(2.0f);

@@ -17,7 +17,7 @@ using namespace string_utilities;
 
 void populate_globe(void)
 {
-	std::mt19937 g(static_cast<unsigned int>(time(0)));
+	std::mt19937 g(0);// static_cast<unsigned int>(time(0)));
 
 	// Break up into countries
 	vector<size_t> indices;
@@ -348,6 +348,9 @@ int main(int argc, char **argv)
 
 		all_cities.push_back(c);
 	}
+
+	//all_cities.resize(2000);
+
 
 	populate_globe();
 
