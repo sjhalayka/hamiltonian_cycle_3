@@ -307,9 +307,61 @@ void populate_globe(void)
 	*/
 }
 
+void read_triangles(const char *const file_name, const vector<vertex_3> &vertices, vector<triangle> &tris, vector< vector<bool> > &graph)
+{
+	tris.clear();
 
+	ifstream tri_file("triangles.txt");
 
+	string line;
 
+	// Skip first line
+	getline(tri_file, line);
+
+	while (getline(tri_file, line))
+	{
+		if ("" == line)
+			continue;
+
+		vector<string> tokens = stl_str_tok(" ", line);
+
+		if (tokens.size() != 3)
+			continue;
+
+		istringstream iss;
+
+		size_t tri0_index = 0;
+		size_t tri1_index = 0;
+		size_t tri2_index = 0;
+
+		iss.str(tokens[0]);
+		iss >> tri0_index;
+
+		iss.clear();
+		iss.str(tokens[1]);
+		iss >> tri1_index;
+
+		iss.clear();
+		iss.str(tokens[2]);
+		iss >> tri2_index;
+
+		graph[tri0_index][tri1_index] = true;
+		graph[tri1_index][tri0_index] = true;
+
+		graph[tri1_index][tri2_index] = true;
+		graph[tri2_index][tri1_index] = true;
+
+		graph[tri2_index][tri0_index] = true;
+		graph[tri0_index][tri2_index] = true;
+
+		triangle tri;
+		tri.vertex[0] = vertices[tri0_index];
+		tri.vertex[1] = vertices[tri1_index];
+		tri.vertex[2] = vertices[tri2_index];
+
+		tris.push_back(tri);
+	}
+}
 
 
 int main(int argc, char **argv)
@@ -355,8 +407,45 @@ int main(int argc, char **argv)
 	populate_globe();
 
 
+
+	// for each world make triangulation and graph of vertices of all cities
+	// convert cities into a vector of vertices
+	vector<vertex_3> all_vertices;
+
+	for (size_t i = 0; i < all_cities.size(); i++)
+	{
+		vertex_3 v;
+		v.x = all_cities[i].x;
+		v.y = all_cities[i].y;
+		v.z = 0;
+
+		all_vertices.push_back(v);
+	}
+
+	// write vertices to disk
+	ofstream vfile("vertices.txt");
+
+	vfile << "2 rbox " << all_vertices.size() << " D2" << endl;
+	vfile << all_vertices.size() << endl;
+
+	for (size_t i = 0; i < all_vertices.size(); i++)
+		vfile << all_vertices[i].x << " " << all_vertices[i].y << endl;
+
+	// run qdelaunay
+	system("qdelaunay i < vertices.txt > triangles.txt");
+
+	// read triangles from disk... for each triangle, add graph edges
+	vector<bool> all_cities_graph_seed(all_vertices.size(), false);
+	vector< vector<bool> > all_cities_graph(all_vertices.size(), all_cities_graph_seed);
+
+	read_triangles("triangles.txt", all_vertices, all_cities_tris, all_cities_graph);
+
+
+
+
+
+
 	// for each world, make triangulation and graph for vertices of federal capitols
-	
 	// convert federal capitols into a vector of vertices
 	vector<vertex_3> federal_capitol_vertices;
 	
@@ -371,7 +460,8 @@ int main(int argc, char **argv)
 	}
 	
 	// write vertices to disk
-	ofstream vfile("vertices.txt");
+	vfile.close();
+	vfile.open("vertices.txt");
 
 	vfile << "2 rbox " << federal_capitol_vertices.size() << " D2" << endl;
 	vfile << federal_capitol_vertices.size() << endl;
@@ -380,71 +470,53 @@ int main(int argc, char **argv)
 		vfile << federal_capitol_vertices[i].x << " " << federal_capitol_vertices[i].y << endl;
 
 	// run qdelaunay
-	system("qdelaunay s i < vertices.txt > triangles.txt");
+	system("qdelaunay i < vertices.txt > triangles.txt");
 
-	// read triangles from disk
-	// for each triangle, add graph edges
-	vector<bool> g(federal_capitol_vertices.size(), false);
-	vector< vector<bool> > graph(federal_capitol_vertices.size(), g);
+	// read triangles from disk... for each triangle, add graph edges
+	vector<bool> federal_capitols_graph_seed(federal_capitol_vertices.size(), false);
+	vector< vector<bool> > federal_capitols_graph(federal_capitol_vertices.size(), federal_capitols_graph_seed);
+
+	read_triangles("triangles.txt", federal_capitol_vertices, federal_capitol_tris, federal_capitols_graph);
 
 
-	ifstream tri_file("triangles.txt");
 
-	// Skip first line
-	getline(tri_file, line);
 
-	while (getline(tri_file, line))
+
+	provincial_capitol_tris.resize(num_provinces_per_country);
+
+	for (size_t i = 0; i < num_countries; i++)
 	{
-		if ("" == line)
-			continue;
+		vector<vertex_3> provincial_capitol_vertices;
 
-		vector<string> tokens = stl_str_tok(" ", line);
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			vertex_3 v;
+			v.x = provincial_capitol_cities[i][j].x;
+			v.y = provincial_capitol_cities[i][j].y;
+			v.z = 0;
 
-		if (tokens.size() != 3)
-			continue;
+			provincial_capitol_vertices.push_back(v);
+		}
 
-		istringstream iss;
+		// write vertices to disk
+		vfile.close();
+		vfile.open("vertices.txt");
 
-		size_t tri0_index = 0;
-		size_t tri1_index = 0;
-		size_t tri2_index = 0;
+		vfile << "2 rbox " << provincial_capitol_vertices.size() << " D2" << endl;
+		vfile << provincial_capitol_vertices.size() << endl;
 
-		iss.str(tokens[0]);
-		iss >> tri0_index;
+		for (size_t j = 0; j < provincial_capitol_vertices.size(); j++)
+			vfile << provincial_capitol_vertices[j].x << " " << provincial_capitol_vertices[j].y << endl;
 
-		iss.clear();
-		iss.str(tokens[1]);
-		iss >> tri1_index;
+		// run qdelaunay
+		system("qdelaunay i < vertices.txt > triangles.txt");
 
-		iss.clear();
-		iss.str(tokens[2]);
-		iss >> tri2_index;
+		// read triangles from disk... for each triangle, add graph edges
+		vector<bool> provincial_capitols_graph_seed(provincial_capitol_vertices.size(), false);
+		vector< vector<bool> > provincial_capitols_graph(provincial_capitol_vertices.size(), provincial_capitols_graph_seed);
 
-		graph[tri0_index][tri1_index] = true;
-		graph[tri1_index][tri0_index] = true;
-
-
-		graph[tri1_index][tri2_index] = true;
-		graph[tri2_index][tri1_index] = true;
-
-
-		graph[tri2_index][tri0_index] = true;
-		graph[tri0_index][tri2_index] = true;
-
-
-		triangle tri;
-
-		tri.vertex[0] = federal_capitol_vertices[tri0_index];
-		tri.vertex[1] = federal_capitol_vertices[tri1_index];
-		tri.vertex[2] = federal_capitol_vertices[tri2_index];
-
-		federal_capitol_tris.push_back(tri);
+		read_triangles("triangles.txt", provincial_capitol_vertices, provincial_capitol_tris[i], provincial_capitols_graph);
 	}
-
-	cout << "triangle count " << federal_capitol_tris.size() << endl;
-
-
-
 
 
 
@@ -468,9 +540,6 @@ int main(int argc, char **argv)
 	// For each country, for each province, make triangulation and graph for vertices of cities 
 
 
-
-//	vector<bool> g(vertices.size(), false);
-//	vector< vector<bool> > graph(vertices.size(), g);
 
 
 

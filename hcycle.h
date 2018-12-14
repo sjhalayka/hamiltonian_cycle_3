@@ -86,8 +86,10 @@ vector<size_t> province_per_city;
 
 
 
+vector<triangle> all_cities_tris;
 vector<triangle> federal_capitol_tris;
-
+vector<vector<triangle> > provincial_capitol_tris;
+vector<vector<vector<triangle> > > provincial_cities_tris;
 
 
 
@@ -207,6 +209,33 @@ void draw_objects(void)
 	}
 
 	glEnd();
+
+
+
+
+	glLineWidth(1.0f);
+
+	glBegin(GL_LINES);
+
+	glColor3f(0.0f, 0.0f, 0.0f);
+
+	for (size_t i = 0; i < provincial_capitol_tris.size(); i++)
+	{
+		for (size_t j = 0; j < provincial_capitol_tris[i].size(); j++)
+		{
+			glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
+			glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
+
+			glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
+			glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
+
+			glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
+			glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
+		}
+	}
+
+	glEnd();
+
 
 
 
