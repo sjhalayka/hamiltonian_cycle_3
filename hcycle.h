@@ -76,8 +76,16 @@ vector<triangle> federal_capitol_tris;
 vector<vector<triangle> > provincial_capitol_tris;
 vector<vector<vector<triangle> > > provincial_cities_tris;
 
-size_t num_countries = 10;// 60;
-size_t num_provinces_per_country = 10;// 60;
+vector<vector<bool> > all_cities_graph;
+vector<vector<bool> > federal_capitols_graph;
+vector<vector<vector<bool> > > provincial_capitols_graph;
+vector<vector<vector<vector<bool> > > > provincial_cities_graph;
+
+size_t num_countries = 17;// 60;
+size_t num_provinces_per_country = 17;// 60;
+
+
+
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {

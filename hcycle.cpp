@@ -247,6 +247,228 @@ void read_triangles(const char *const file_name, const vector<vertex_3> &vertice
 }
 
 
+void get_triangles_and_edge_matrices(void)
+{
+	// for each world make triangulation and graph of vertices of all cities
+	// convert cities into a vector of vertices
+	vector<vertex_3> all_vertices;
+
+	for (size_t i = 0; i < all_cities.size(); i++)
+	{
+		vertex_3 v;
+		v.x = all_cities[i].x;
+		v.y = all_cities[i].y;
+		v.z = 0;
+
+		all_vertices.push_back(v);
+	}
+
+	// write vertices to disk
+	ofstream vfile("vertices.txt");
+
+	vfile << "2 rbox " << all_vertices.size() << " D2" << endl;
+	vfile << all_vertices.size() << endl;
+
+	for (size_t i = 0; i < all_vertices.size(); i++)
+		vfile << all_vertices[i].x << " " << all_vertices[i].y << endl;
+
+	// run qdelaunay
+	system("qdelaunay i < vertices.txt > triangles.txt");
+
+	// read triangles from disk... for each triangle, add graph edges
+	vector<bool> all_cities_graph_seed(all_vertices.size(), false);
+	//vector< vector<bool> > all_cities_graph(all_vertices.size(), all_cities_graph_seed);
+	all_cities_graph.resize(all_vertices.size(), all_cities_graph_seed);
+
+	read_triangles("triangles.txt", all_vertices, all_cities_tris, all_cities_graph);
+
+
+
+
+
+
+	// for each world, make triangulation and graph for vertices of federal capitols
+	// convert federal capitols into a vector of vertices
+	vector<vertex_3> federal_capitol_vertices;
+
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		vertex_3 v;
+		v.x = federal_capitol_cities[i].x;
+		v.y = federal_capitol_cities[i].y;
+		v.z = 0;
+
+		federal_capitol_vertices.push_back(v);
+	}
+
+	// write vertices to disk
+	vfile.close();
+	vfile.open("vertices.txt");
+
+	vfile << "2 rbox " << federal_capitol_vertices.size() << " D2" << endl;
+	vfile << federal_capitol_vertices.size() << endl;
+
+	for (size_t i = 0; i < federal_capitol_vertices.size(); i++)
+		vfile << federal_capitol_vertices[i].x << " " << federal_capitol_vertices[i].y << endl;
+
+	// run qdelaunay
+	system("qdelaunay i < vertices.txt > triangles.txt");
+
+	// read triangles from disk... for each triangle, add graph edges
+	vector<bool> federal_capitols_graph_seed(federal_capitol_vertices.size(), false);
+	//vector< vector<bool> > federal_capitols_graph(federal_capitol_vertices.size(), federal_capitols_graph_seed);
+	federal_capitols_graph.resize(federal_capitol_vertices.size(), federal_capitols_graph_seed);
+
+	read_triangles("triangles.txt", federal_capitol_vertices, federal_capitol_tris, federal_capitols_graph);
+
+
+
+
+
+	provincial_capitol_tris.resize(num_provinces_per_country);
+	provincial_capitols_graph.resize(num_provinces_per_country);
+
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		vector<vertex_3> provincial_capitol_vertices;
+
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			vertex_3 v;
+			v.x = provincial_capitol_cities[i][j].x;
+			v.y = provincial_capitol_cities[i][j].y;
+			v.z = 0;
+
+			provincial_capitol_vertices.push_back(v);
+		}
+
+		// write vertices to disk
+		vfile.close();
+		vfile.open("vertices.txt");
+
+		vfile << "2 rbox " << provincial_capitol_vertices.size() << " D2" << endl;
+		vfile << provincial_capitol_vertices.size() << endl;
+
+		for (size_t j = 0; j < provincial_capitol_vertices.size(); j++)
+			vfile << provincial_capitol_vertices[j].x << " " << provincial_capitol_vertices[j].y << endl;
+
+		// run qdelaunay
+		system("qdelaunay i < vertices.txt > triangles.txt");
+
+		// read triangles from disk... for each triangle, add graph edges
+		vector<bool> provincial_capitols_graph_seed(provincial_capitol_vertices.size(), false);
+		//vector< vector<bool> > provincial_capitols_graph(provincial_capitol_vertices.size(), provincial_capitols_graph_seed);
+		provincial_capitols_graph[i].resize(provincial_capitol_vertices.size(), provincial_capitols_graph_seed);
+
+		read_triangles("triangles.txt", provincial_capitol_vertices, provincial_capitol_tris[i], provincial_capitols_graph[i]);
+	}
+
+
+
+
+	// For each country, for each province, make triangulation and graph for vertices of cities 
+	provincial_cities_graph.resize(num_provinces_per_country*num_countries);
+
+	for (size_t i = 0; i < provincial_cities_graph.size(); i++)
+		provincial_cities_graph[i].resize(num_provinces_per_country);
+
+	provincial_cities_tris.resize(num_provinces_per_country*num_countries);
+
+	for (size_t i = 0; i < provincial_cities_tris.size(); i++)
+		provincial_cities_tris[i].resize(num_provinces_per_country);
+
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			vector<vertex_3> provincial_cities_vertices;
+
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+			{
+				vertex_3 v;
+				v.x = provincial_cities[i][j][k].x;
+				v.y = provincial_cities[i][j][k].y;
+				v.z = 0;
+
+				provincial_cities_vertices.push_back(v);
+			}
+
+			vector<bool> provincial_cities_graph_seed(provincial_cities_vertices.size(), false);
+			provincial_cities_graph[i][j].resize(provincial_cities_vertices.size(), provincial_cities_graph_seed);
+
+			if (provincial_cities_vertices.size() == 0)
+			{
+				// This should never happen, 
+				// since a city can be a federal capitol and 
+				// provincial capitol and provincial city,
+				// all at the same time.
+			}
+			if (provincial_cities_vertices.size() == 1)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[0];
+				tri.vertex[2] = provincial_cities_vertices[0];
+
+				provincial_cities_tris[i][j].push_back(tri);
+
+				// No graph edges are to be gotten from 1 vertex
+			}
+			else if (provincial_cities_vertices.size() == 2)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[1];
+				tri.vertex[2] = provincial_cities_vertices[1];
+
+				provincial_cities_tris[i][j].push_back(tri);
+
+				provincial_cities_graph[i][j][0][1] = true;
+				provincial_cities_graph[i][j][1][0] = true;
+			}
+			else if (provincial_cities_vertices.size() == 3)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[1];
+				tri.vertex[2] = provincial_cities_vertices[2];
+
+				provincial_cities_tris[i][j].push_back(tri);
+
+				provincial_cities_graph[i][j][0][1] = true;
+				provincial_cities_graph[i][j][1][0] = true;
+
+				provincial_cities_graph[i][j][1][2] = true;
+				provincial_cities_graph[i][j][2][1] = true;
+
+				provincial_cities_graph[i][j][2][0] = true;
+				provincial_cities_graph[i][j][0][2] = true;
+			}
+			else
+			{
+				// write 4+ vertices to disk
+				vfile.close();
+				vfile.open("vertices.txt");
+
+				vfile << "2 rbox " << provincial_cities_vertices.size() << " D2" << endl;
+				vfile << provincial_cities_vertices.size() << endl;
+
+				for (size_t j = 0; j < provincial_cities_vertices.size(); j++)
+					vfile << provincial_cities_vertices[j].x << " " << provincial_cities_vertices[j].y << endl;
+
+				// run qdelaunay
+				system("qdelaunay i < vertices.txt > triangles.txt");
+
+				// read triangles from disk... for each triangle, add graph edges
+
+				read_triangles("triangles.txt", provincial_cities_vertices, provincial_cities_tris[i][j], provincial_cities_graph[i][j]);
+			}
+		}
+	}
+
+
+}
+
 int main(int argc, char **argv)
 {
 	srand(0);// static_cast<unsigned int>(time(0)));
@@ -290,233 +512,7 @@ int main(int argc, char **argv)
 	populate_globe();
 
 
-
-	// for each world make triangulation and graph of vertices of all cities
-	// convert cities into a vector of vertices
-	vector<vertex_3> all_vertices;
-
-	for (size_t i = 0; i < all_cities.size(); i++)
-	{
-		vertex_3 v;
-		v.x = all_cities[i].x;
-		v.y = all_cities[i].y;
-		v.z = 0;
-
-		all_vertices.push_back(v);
-	}
-
-	// write vertices to disk
-	ofstream vfile("vertices.txt");
-
-	vfile << "2 rbox " << all_vertices.size() << " D2" << endl;
-	vfile << all_vertices.size() << endl;
-
-	for (size_t i = 0; i < all_vertices.size(); i++)
-		vfile << all_vertices[i].x << " " << all_vertices[i].y << endl;
-
-	// run qdelaunay
-	system("qdelaunay i < vertices.txt > triangles.txt");
-
-	// read triangles from disk... for each triangle, add graph edges
-	vector<bool> all_cities_graph_seed(all_vertices.size(), false);
-	vector< vector<bool> > all_cities_graph(all_vertices.size(), all_cities_graph_seed);
-
-	read_triangles("triangles.txt", all_vertices, all_cities_tris, all_cities_graph);
-
-
-
-
-
-
-	// for each world, make triangulation and graph for vertices of federal capitols
-	// convert federal capitols into a vector of vertices
-	vector<vertex_3> federal_capitol_vertices;
-	
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		vertex_3 v;
-		v.x = federal_capitol_cities[i].x;
-		v.y = federal_capitol_cities[i].y;
-		v.z = 0;
-
-		federal_capitol_vertices.push_back(v);
-	}
-	
-	// write vertices to disk
-	vfile.close();
-	vfile.open("vertices.txt");
-
-	vfile << "2 rbox " << federal_capitol_vertices.size() << " D2" << endl;
-	vfile << federal_capitol_vertices.size() << endl;
-
-	for(size_t i = 0; i < federal_capitol_vertices.size(); i++)
-		vfile << federal_capitol_vertices[i].x << " " << federal_capitol_vertices[i].y << endl;
-
-	// run qdelaunay
-	system("qdelaunay i < vertices.txt > triangles.txt");
-
-	// read triangles from disk... for each triangle, add graph edges
-	vector<bool> federal_capitols_graph_seed(federal_capitol_vertices.size(), false);
-	vector< vector<bool> > federal_capitols_graph(federal_capitol_vertices.size(), federal_capitols_graph_seed);
-
-	read_triangles("triangles.txt", federal_capitol_vertices, federal_capitol_tris, federal_capitols_graph);
-
-
-
-
-
-	provincial_capitol_tris.resize(num_provinces_per_country);
-
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		vector<vertex_3> provincial_capitol_vertices;
-
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-		{
-			vertex_3 v;
-			v.x = provincial_capitol_cities[i][j].x;
-			v.y = provincial_capitol_cities[i][j].y;
-			v.z = 0;
-
-			provincial_capitol_vertices.push_back(v);
-		}
-
-		// write vertices to disk
-		vfile.close();
-		vfile.open("vertices.txt");
-
-		vfile << "2 rbox " << provincial_capitol_vertices.size() << " D2" << endl;
-		vfile << provincial_capitol_vertices.size() << endl;
-
-		for (size_t j = 0; j < provincial_capitol_vertices.size(); j++)
-			vfile << provincial_capitol_vertices[j].x << " " << provincial_capitol_vertices[j].y << endl;
-
-		// run qdelaunay
-		system("qdelaunay i < vertices.txt > triangles.txt");
-
-		// read triangles from disk... for each triangle, add graph edges
-		vector<bool> provincial_capitols_graph_seed(provincial_capitol_vertices.size(), false);
-		vector< vector<bool> > provincial_capitols_graph(provincial_capitol_vertices.size(), provincial_capitols_graph_seed);
-
-		read_triangles("triangles.txt", provincial_capitol_vertices, provincial_capitol_tris[i], provincial_capitols_graph);
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// for each country, make triangulation and graph for vertices of provincial capitols
-	// convert provincial capitols into a vector of vector vertices
-	// write vertices to disk
-	// run qdelaunay
-	// read triangles from disk
-	// for each triangle, add graph edges
-
-	// For each country, for each province, make triangulation and graph for vertices of cities 
-
-
-	provincial_cities_tris.resize(num_provinces_per_country*num_countries);
-
-	for (size_t i = 0; i < provincial_cities_tris.size(); i++)
-		provincial_cities_tris[i].resize(num_provinces_per_country);
-
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-		{
-			vector<vertex_3> provincial_cities_vertices;
-
-			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-			{
-				vertex_3 v;
-				v.x = provincial_cities[i][j][k].x;
-				v.y = provincial_cities[i][j][k].y;
-				v.z = 0;
-
-				provincial_cities_vertices.push_back(v);
-			}
-
-			vector<bool> provincial_cities_graph_seed(provincial_cities_vertices.size(), false);
-			vector< vector<bool> > provincial_cities_graph(provincial_cities_vertices.size(), provincial_cities_graph_seed);
-
-			if (provincial_cities_vertices.size() == 0)
-			{
-				// This should never happen, 
-				// since a city can be a federal capitol and 
-				// provincial capitol and provincial city,
-				// all at the same time.
-			}
-			if (provincial_cities_vertices.size() == 1)
-			{
-				triangle tri;
-				tri.vertex[0] = provincial_cities_vertices[0];
-				tri.vertex[1] = provincial_cities_vertices[0];
-				tri.vertex[2] = provincial_cities_vertices[0];
-
-				provincial_cities_tris[i][j].push_back(tri);
-
-				// No graph edges are gotten from 1 vertex
-			}
-			else if (provincial_cities_vertices.size() == 2)
-			{
-				triangle tri;
-				tri.vertex[0] = provincial_cities_vertices[0];
-				tri.vertex[1] = provincial_cities_vertices[1];
-				tri.vertex[2] = provincial_cities_vertices[1];
-
-				provincial_cities_tris[i][j].push_back(tri);
-
-				provincial_cities_graph[0][1] = true;
-				provincial_cities_graph[1][0] = true;
-			}
-			else if (provincial_cities_vertices.size() == 3)
-			{
-				triangle tri;
-				tri.vertex[0] = provincial_cities_vertices[0];
-				tri.vertex[1] = provincial_cities_vertices[1];
-				tri.vertex[2] = provincial_cities_vertices[2];
-
-				provincial_cities_tris[i][j].push_back(tri);
-
-				provincial_cities_graph[0][1] = true;
-				provincial_cities_graph[1][0] = true;
-
-				provincial_cities_graph[1][2] = true;
-				provincial_cities_graph[2][1] = true;
-
-				provincial_cities_graph[2][0] = true;
-				provincial_cities_graph[0][2] = true;
-			}
-			else
-			{
-				// write 4+ vertices to disk
-				vfile.close();
-				vfile.open("vertices.txt");
-
-				vfile << "2 rbox " << provincial_cities_vertices.size() << " D2" << endl;
-				vfile << provincial_cities_vertices.size() << endl;
-
-				for (size_t j = 0; j < provincial_cities_vertices.size(); j++)
-					vfile << provincial_cities_vertices[j].x << " " << provincial_cities_vertices[j].y << endl;
-
-				// run qdelaunay
-				system("qdelaunay i < vertices.txt > triangles.txt");
-
-				// read triangles from disk... for each triangle, add graph edges
-
-				read_triangles("triangles.txt", provincial_cities_vertices, provincial_cities_tris[i][j], provincial_cities_graph);
-			}
-		}
-	}
-
+	get_triangles_and_edge_matrices();
 
 
 
