@@ -42,13 +42,6 @@ public:
 	size_t capitol_id;
 };
 
-class municipality
-{
-public:
-	size_t id;
-	size_t capitol_id;
-};
-
 class city
 {
 public:
@@ -59,22 +52,16 @@ public:
 
 vector<country> countries;
 vector<province> provinces;
-// vector<municipality> municipalities;
 
 vector<city> all_cities; // cities per world
 vector<vector<city> > federal_cities; // cities per country
 vector<vector<vector<city> > > provincial_cities; // cities per province
-//vector<vector<vector<vector<city> > > > municipal_cities; // cities per municipality
 
 vector<city> federal_capitol_cities;
 vector<vector<city> > provincial_capitol_cities;
-//vector<vector<vector<city> > > municipal_capitol_cities;
 
 vector<vertex_3> country_colours;
 vector<vertex_3> province_colours;
-//vector<vertex_3> municipality_colours;
-
-
 
 vector<vector<size_t> > cities_per_country;
 vector<size_t> country_per_city;
@@ -84,28 +71,13 @@ vector<size_t> country_per_province;
 vector<vector<size_t> > cities_per_province;
 vector<size_t> province_per_city;
 
-
-
 vector<triangle> all_cities_tris;
 vector<triangle> federal_capitol_tris;
 vector<vector<triangle> > provincial_capitol_tris;
 vector<vector<vector<triangle> > > provincial_cities_tris;
 
-
-
-size_t num_countries = 17;// 60;
-size_t num_provinces_per_country = 17;// 60;
-//size_t max_num_municipalities_per_province = 25;
-
-
-
-
-//vector<vector<size_t> > counties_per_country;
-//vector<size_t> country_per_county;
-//vector<vector<size_t> > counties_per_province;
-//vector<size_t> province_per_county;
-//vector<vector<size_t> > cities_per_county;
-//vector<size_t> county_per_city;
+size_t num_countries = 10;// 60;
+size_t num_provinces_per_country = 10;// 60;
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {
@@ -189,48 +161,78 @@ void draw_objects(void)
 
 
 
+	//glLineWidth(1.0f);
+
+	//glBegin(GL_LINES);
+
+	//glColor3f(0.0f, 0.0f, 0.0f);
+
+	//for (size_t i = 0; i < federal_capitol_tris.size(); i++)
+	//{
+	//	glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
+	//	glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
+
+	//	glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
+	//	glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
+
+	//	glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
+	//	glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
+
+	//}
+
+	//glEnd();
+
+
+
+
+	//glLineWidth(1.0f);
+
+	//glBegin(GL_LINES);
+
+	//glColor3f(0.0f, 0.0f, 0.0f);
+
+	//for (size_t i = 0; i < provincial_capitol_tris.size(); i++)
+	//{
+	//	for (size_t j = 0; j < provincial_capitol_tris[i].size(); j++)
+	//	{
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
+
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
+
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
+	//		glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
+	//	}
+	//}
+
+	//glEnd();
+
+
+	glEnable(GL_BLEND);
+
+
 	glLineWidth(1.0f);
 
 	glBegin(GL_LINES);
 
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-	for (size_t i = 0; i < federal_capitol_tris.size(); i++)
+	for (size_t i = 0; i < provincial_cities_tris.size(); i++)
 	{
-		glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
-		glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
-
-		glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
-		glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
-
-		glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
-		glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
-
-	}
-
-	glEnd();
-
-
-
-
-	glLineWidth(1.0f);
-
-	glBegin(GL_LINES);
-
-	glColor3f(0.0f, 0.0f, 0.0f);
-
-	for (size_t i = 0; i < provincial_capitol_tris.size(); i++)
-	{
-		for (size_t j = 0; j < provincial_capitol_tris[i].size(); j++)
+		for (size_t j = 0; j < provincial_cities_tris[i].size(); j++)
 		{
-			glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
-			glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
+			for (size_t k = 0; k < provincial_cities_tris[i][j].size(); k++)
+			{
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
 
-			glVertex3f(provincial_capitol_tris[i][j].vertex[1].x, provincial_capitol_tris[i][j].vertex[1].y, provincial_capitol_tris[i][j].vertex[1].z);
-			glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
 
-			glVertex3f(provincial_capitol_tris[i][j].vertex[2].x, provincial_capitol_tris[i][j].vertex[2].y, provincial_capitol_tris[i][j].vertex[2].z);
-			glVertex3f(provincial_capitol_tris[i][j].vertex[0].x, provincial_capitol_tris[i][j].vertex[0].y, provincial_capitol_tris[i][j].vertex[0].z);
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
+				glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
+			}
 		}
 	}
 

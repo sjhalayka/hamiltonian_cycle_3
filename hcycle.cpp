@@ -168,112 +168,6 @@ void populate_globe(void)
 	}
 
 
-	/*
-	// Break up into municipalities
-	size_t running_municipality_id = 0;
-
-	municipal_capitol_cities.resize(num_countries);
-
-	for (size_t i = 0; i < municipal_capitol_cities.size(); i++)
-		municipal_capitol_cities[i].resize(num_provinces_per_country);
-
-	// For each country
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		// For each province
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-		{
-			// Take into account that the number of cities per municipality 
-			// might be less than the maximum
-			size_t num_municipalities = provincial_cities[i][j].size();
-
-			if (num_municipalities > max_num_municipalities_per_province)
-				num_municipalities = max_num_municipalities_per_province;
-
-			//if (num_municipalities < num_municipalities_per_province)
-			//	cout << num_municipalities << endl;
-
-			get_n_distinct_indices(num_municipalities, num_municipalities, indices, g);
-
-			// Fill municipal capitols
-			for (size_t k = 0; k < num_municipalities; k++)
-				municipal_capitol_cities[i][j].push_back(provincial_cities[i][j][indices[k]]);
-
-			// Store municipalities
-			for (size_t k = 0; k < num_municipalities; k++)
-			{
-				municipality m;
-
-				m.id = running_municipality_id++;
-				m.capitol_id = municipal_capitol_cities[i][j][k].id;
-
-				municipalities.push_back(m);
-			}
-		}
-	}
-
-	// alloc room for 25x25xn vectors
-	municipal_cities.resize(num_countries);
-
-	for (size_t i = 0; i < municipal_cities.size(); i++)
-		municipal_cities[i].resize(num_provinces_per_country);
-
-	for (size_t i = 0; i < municipal_cities.size(); i++)
-	{
-		for (size_t j = 0; j < municipal_cities[i].size(); j++)
-		{
-			size_t num_municipalities = provincial_cities[i][j].size();
-
-			municipal_cities[i][j].resize(num_municipalities);
-		}
-	}
-
-
-	// For each country
-	for (size_t i = 0; i < num_countries; i++)
-	{
-		// For each province 
-		for (size_t j = 0; j < num_provinces_per_country; j++)
-		{
-			size_t num_municipalities = provincial_cities[i][j].size();
-
-			// For each city in the province
-			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-			{
-				float closest_distance = 1e20f;
-				size_t closest_municipality_id = 0;
-
-				// For each municipality
-				for (size_t l = 0; l < municipalities.size(); l++)
-				{
-					// Find municipal capitol location
-					vertex_3 municipality_centre;
-					municipality_centre.x = all_cities[municipalities[l].capitol_id].x;
-					municipality_centre.y = all_cities[municipalities[l].capitol_id].y;
-
-					// Measure distance, finding the shortest distance
-					float distance = sqrtf(powf(municipality_centre.x - provincial_cities[i][j][k].x, 2.0f) + powf(municipality_centre.y - provincial_cities[i][j][k].y, 2.0f));
-
-					if (distance <= closest_distance)
-					{
-						closest_distance = distance;
-						closest_municipality_id = l;
-					}
-				}
-
-				// Populate municipal cities breakdown
-				// Convert federal_cities[closest_country_id].push_back(all_cities[i]); ...
-				//municipal_cities[i][j][closest_municipality_id].push_back(provincial_cities[i][j][k]);
-			}
-		}
-	}
-
-	*/
-
-
-
-
-
 
 
 
@@ -294,17 +188,6 @@ void populate_globe(void)
 		province_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 		province_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
-
-	/*
-	municipality_colours.resize(num_countries*num_provinces_per_country * 200000);
-
-	for (size_t i = 0; i < municipality_colours.size(); i++)
-	{
-		municipality_colours[i].x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		municipality_colours[i].y = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		municipality_colours[i].z = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-	}
-	*/
 }
 
 void read_triangles(const char *const file_name, const vector<vertex_3> &vertices, vector<triangle> &tris, vector< vector<bool> > &graph)
@@ -540,23 +423,100 @@ int main(int argc, char **argv)
 	// For each country, for each province, make triangulation and graph for vertices of cities 
 
 
+	provincial_cities_tris.resize(num_provinces_per_country*num_countries);
 
+	for (size_t i = 0; i < provincial_cities_tris.size(); i++)
+		provincial_cities_tris[i].resize(num_provinces_per_country);
 
+	for (size_t i = 0; i < num_countries; i++)
+	{
+		for (size_t j = 0; j < num_provinces_per_country; j++)
+		{
+			vector<vertex_3> provincial_cities_vertices;
 
+			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+			{
+				vertex_3 v;
+				v.x = provincial_cities[i][j][k].x;
+				v.y = provincial_cities[i][j][k].y;
+				v.z = 0;
 
+				provincial_cities_vertices.push_back(v);
+			}
 
+			vector<bool> provincial_cities_graph_seed(provincial_cities_vertices.size(), false);
+			vector< vector<bool> > provincial_cities_graph(provincial_cities_vertices.size(), provincial_cities_graph_seed);
 
+			if (provincial_cities_vertices.size() == 0)
+			{
+				// This should never happen, 
+				// since a city can be a federal capitol and 
+				// provincial capitol and provincial city,
+				// all at the same time.
+			}
+			if (provincial_cities_vertices.size() == 1)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[0];
+				tri.vertex[2] = provincial_cities_vertices[0];
 
-	// qhull s i < vertices.txt > triangles.txt
+				provincial_cities_tris[i][j].push_back(tri);
 
+				// No graph edges are gotten from 1 vertex
+			}
+			else if (provincial_cities_vertices.size() == 2)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[1];
+				tri.vertex[2] = provincial_cities_vertices[1];
 
-	//cout << "3 rbox " << vertices.size() << " s D3" << endl;
-	//cout << vertices.size() << endl;
+				provincial_cities_tris[i][j].push_back(tri);
 
-	//for(size_t i = 0; i < vertices.size(); i++)
-	//	cout << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << endl;
+				provincial_cities_graph[0][1] = true;
+				provincial_cities_graph[1][0] = true;
+			}
+			else if (provincial_cities_vertices.size() == 3)
+			{
+				triangle tri;
+				tri.vertex[0] = provincial_cities_vertices[0];
+				tri.vertex[1] = provincial_cities_vertices[1];
+				tri.vertex[2] = provincial_cities_vertices[2];
 
-	// return 0;
+				provincial_cities_tris[i][j].push_back(tri);
+
+				provincial_cities_graph[0][1] = true;
+				provincial_cities_graph[1][0] = true;
+
+				provincial_cities_graph[1][2] = true;
+				provincial_cities_graph[2][1] = true;
+
+				provincial_cities_graph[2][0] = true;
+				provincial_cities_graph[0][2] = true;
+			}
+			else
+			{
+				// write 4+ vertices to disk
+				vfile.close();
+				vfile.open("vertices.txt");
+
+				vfile << "2 rbox " << provincial_cities_vertices.size() << " D2" << endl;
+				vfile << provincial_cities_vertices.size() << endl;
+
+				for (size_t j = 0; j < provincial_cities_vertices.size(); j++)
+					vfile << provincial_cities_vertices[j].x << " " << provincial_cities_vertices[j].y << endl;
+
+				// run qdelaunay
+				system("qdelaunay i < vertices.txt > triangles.txt");
+
+				// read triangles from disk... for each triangle, add graph edges
+
+				read_triangles("triangles.txt", provincial_cities_vertices, provincial_cities_tris[i][j], provincial_cities_graph);
+			}
+		}
+	}
+
 
 
 
