@@ -81,11 +81,132 @@ vector<vector<bool> > federal_capitols_graph;
 vector<vector<vector<bool> > > provincial_capitols_graph;
 vector<vector<vector<vector<bool> > > > provincial_cities_graph;
 
+
+
+
+vector<size_t> final_path;
+
 size_t num_countries = 17;// 60;
 size_t num_provinces_per_country = 17;// 60;
 
 
 
+
+									  /*
+									  * check if the vertex v can be added at index 'pos' in the Hamiltonian Cycle
+									  */
+
+bool isSafe(int v, vector<vector<bool> > graph, size_t path[], int pos)
+{
+	if (graph[path[pos - 1]][v] == 0)
+		return false;
+
+	for (int i = 0; i < pos; i++)
+		if (path[i] == v)
+			return false;
+
+	return true;
+}
+
+
+
+/* solve hamiltonian cycle problem */
+bool hamCycleUtil(vector<vector<bool> > graph, size_t path[], int pos)
+{
+	cout << "hamCycleUtil begin" << endl;
+
+	const size_t V = graph[0].size();
+
+	if (pos == V)
+	{
+		if (graph[path[pos - 1]][path[0]] == 1)
+			return true;
+		else
+			return false;
+	}
+
+	for (int v = 1; v < V; v++)
+	{
+		if (isSafe(v, graph, path, pos))
+		{
+			path[pos] = v;
+
+			if (hamCycleUtil(graph, path, pos + 1) == true)
+				return true;
+
+			path[pos] = -1;
+		}
+	}
+
+	cout << "hamCycleUtil end" << endl;
+
+	return false;
+}
+
+void printSolution(size_t path[], const size_t V)
+{
+	cout << "Solution Exists:";
+	cout << " Following is one Hamiltonian Cycle \n" << endl;
+
+	for (int i = 0; i < V; i++)
+		cout << path[i] << "  ";
+
+	cout << path[0] << endl;
+}
+
+
+/* solves the Hamiltonian Cycle problem using Backtracking.*/
+bool hamCycle(vector<vector<bool> > graph, vector<size_t> &path)
+{
+	const size_t V = graph[0].size();
+
+	path.resize(V);
+
+	for (size_t i = 0; i < V; i++)
+		path[i] = -1;
+
+	path[0] = 0;
+
+	if (hamCycleUtil(graph, &path[0], 1) == false)
+	{
+		cout << "\nSolution does not exist" << endl;
+
+		return false;
+	}
+
+	printSolution(&path[0], V);
+
+	return true;
+}
+
+
+bool are_connected(size_t index0, size_t index1, const vector< vector<bool> > &graph)
+{
+	if (graph[index0][index1] && graph[index1][index0])
+		return true;
+
+	return false;
+}
+
+
+bool is_cycle_hamiltonian(const vector<size_t> &cycle, const vector< vector<bool> > &graph)
+{
+	if (cycle.size() < 2)
+		return false;
+
+	if (cycle[0] != 0 || cycle[cycle.size() - 1] != 0)
+		return false;
+
+	for (size_t i = 0; i < cycle.size() - 1; i++)
+	{
+		bool conn = are_connected(cycle[i], cycle[i + 1], graph);
+
+		if (false == conn)
+			return false;
+	}
+
+	return true;
+}
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {
@@ -169,26 +290,27 @@ void draw_objects(void)
 
 
 
-	//glLineWidth(1.0f);
+	glLineWidth(1.0f);
 
-	//glBegin(GL_LINES);
+	glBegin(GL_LINES);
 
-	//glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 
-	//for (size_t i = 0; i < federal_capitol_tris.size(); i++)
-	//{
-	//	glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
-	//	glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
+	for (size_t i = 0; i < federal_capitol_tris.size(); i++)
+	{
+		glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
+		glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
 
-	//	glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
-	//	glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
+		glVertex3f(federal_capitol_tris[i].vertex[1].x, federal_capitol_tris[i].vertex[1].y, federal_capitol_tris[i].vertex[1].z);
+		glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
 
-	//	glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
-	//	glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
+		glVertex3f(federal_capitol_tris[i].vertex[2].x, federal_capitol_tris[i].vertex[2].y, federal_capitol_tris[i].vertex[2].z);
+		glVertex3f(federal_capitol_tris[i].vertex[0].x, federal_capitol_tris[i].vertex[0].y, federal_capitol_tris[i].vertex[0].z);
 
-	//}
+	}
 
-	//glEnd();
+	glEnd();
+
 
 
 
@@ -217,34 +339,36 @@ void draw_objects(void)
 	//glEnd();
 
 
-	glEnable(GL_BLEND);
 
 
-	glLineWidth(1.0f);
 
-	glBegin(GL_LINES);
+	//glEnable(GL_BLEND);
 
-	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+	//glLineWidth(1.0f);
 
-	for (size_t i = 0; i < provincial_cities_tris.size(); i++)
-	{
-		for (size_t j = 0; j < provincial_cities_tris[i].size(); j++)
-		{
-			for (size_t k = 0; k < provincial_cities_tris[i][j].size(); k++)
-			{
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
+	//glBegin(GL_LINES);
 
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
+	//glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
-				glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
-			}
-		}
-	}
+	//for (size_t i = 0; i < provincial_cities_tris.size(); i++)
+	//{
+	//	for (size_t j = 0; j < provincial_cities_tris[i].size(); j++)
+	//	{
+	//		for (size_t k = 0; k < provincial_cities_tris[i][j].size(); k++)
+	//		{
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
 
-	glEnd();
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[1].x, provincial_cities_tris[i][j][k].vertex[1].y, provincial_cities_tris[i][j][k].vertex[1].z);
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
+
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[2].x, provincial_cities_tris[i][j][k].vertex[2].y, provincial_cities_tris[i][j][k].vertex[2].z);
+	//			glVertex3f(provincial_cities_tris[i][j][k].vertex[0].x, provincial_cities_tris[i][j][k].vertex[0].y, provincial_cities_tris[i][j][k].vertex[0].z);
+	//		}
+	//	}
+	//}
+
+	//glEnd();
 
 
 
@@ -312,22 +436,6 @@ void draw_objects(void)
 	}
 
 	glEnd();
-
-
-
-
-
-
-
-
-
-
-
-	glPopMatrix();
-
-	return;
-
-
 
 
 
@@ -447,24 +555,24 @@ void draw_objects(void)
 
 	//glEnd();
 
-	colour_index = 0;
+	//colour_index = 0;
 
-	glPointSize(5.0f);
+	//glPointSize(5.0f);
 
-	glBegin(GL_POINTS);
+	//glBegin(GL_POINTS);
 
-	for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
-	{
-		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
-		{
-			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-			colour_index++;
+	//for (size_t i = 0; i < provincial_capitol_cities.size(); i++)
+	//{
+	//	for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+	//	{
+	//		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+	//		colour_index++;
 
-			glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
-		}
-	}
+	//		glVertex3f(provincial_capitol_cities[i][j].x, provincial_capitol_cities[i][j].y, 0.0f);
+	//	}
+	//}
 
-	glEnd();
+	//glEnd();
 
 
 	//glPointSize(2.0f);
@@ -478,6 +586,33 @@ void draw_objects(void)
 	//			glVertex3f(municipal_capitol_cities[i][j][k].x, municipal_capitol_cities[i][j][k].y, 0.0f);
 
 	//glEnd();
+
+
+
+
+
+
+
+
+	glLineWidth(3.0f);
+
+	glBegin(GL_LINE_LOOP);
+
+	glColor3f(1.0f, 0.5f, 0.0f);
+
+	for (size_t i = 0; i < final_path.size(); i++)
+	{
+		city c = federal_capitol_cities[final_path[i]];
+		glVertex3f(c.x, c.y, 0);
+	}
+
+	glEnd();
+
+
+
+
+
+
 
 	// If we do draw the axis at all, make sure not to draw its outline.
 	if (true == draw_axis)

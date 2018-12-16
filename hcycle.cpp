@@ -17,7 +17,9 @@ using namespace string_utilities;
 
 void populate_globe(void)
 {
-	std::mt19937 g(0);// static_cast<unsigned int>(time(0)));
+	std::mt19937 g(static_cast<unsigned int>(time(0)));
+
+	cout << "Getting countries" << endl;
 
 	// Break up into countries
 	vector<size_t> indices;
@@ -71,6 +73,8 @@ void populate_globe(void)
 		federal_cities[closest_country_id].push_back(all_cities[i]);
 	}
 
+	cout << "Getting provinces" << endl;
+	
 	// Break up into provinces
 	provincial_capitol_cities.resize(num_provinces_per_country);
 
@@ -96,6 +100,8 @@ void populate_globe(void)
 		}
 	}
 
+	cout << "Getting provincial cities" << endl;
+
 	// alloc room for 25x25 vectors
 	provincial_cities.resize(num_countries);
 
@@ -108,6 +114,9 @@ void populate_globe(void)
 		// For each city in the country
 		for (size_t j = 0; j < federal_cities[i].size(); j++)
 		{
+			if(j % 1000 == 0)
+			cout << i << " " << j << endl;
+
 			float closest_distance = 1e20f;
 			size_t closest_province_id = 0;
 
@@ -134,6 +143,8 @@ void populate_globe(void)
 			provincial_cities[closest_province_id / num_provinces_per_country][closest_province_id % num_provinces_per_country].push_back(federal_cities[i][j]);
 		}
 	}
+
+	cout << "Making LUTs" << endl;
 
 	// Get LUTs
 	cities_per_country.resize(num_countries);
@@ -168,7 +179,7 @@ void populate_globe(void)
 	}
 
 
-
+	cout << "Getting pseudorandom colours per country and province" << endl;
 
 
 	country_colours.resize(num_countries);
@@ -249,6 +260,8 @@ void read_triangles(const char *const file_name, const vector<vertex_3> &vertice
 
 void get_triangles_and_edge_matrices(void)
 {
+	cout << "Getting triangulation for all cities" << endl;
+
 	// for each world make triangulation and graph of vertices of all cities
 	// convert cities into a vector of vertices
 	vector<vertex_3> all_vertices;
@@ -285,7 +298,7 @@ void get_triangles_and_edge_matrices(void)
 
 
 
-
+	cout << "Getting triangulation for federal capitols" << endl;
 
 	// for each world, make triangulation and graph for vertices of federal capitols
 	// convert federal capitols into a vector of vertices
@@ -323,7 +336,7 @@ void get_triangles_and_edge_matrices(void)
 
 
 
-
+	cout << "Getting triangulation for provincial capitols" << endl;
 
 	provincial_capitol_tris.resize(num_provinces_per_country);
 	provincial_capitols_graph.resize(num_provinces_per_country);
@@ -364,7 +377,7 @@ void get_triangles_and_edge_matrices(void)
 	}
 
 
-
+	cout << "Getting triangulation for provincial cities" << endl;
 
 	// For each country, for each province, make triangulation and graph for vertices of cities 
 	provincial_cities_graph.resize(num_provinces_per_country*num_countries);
@@ -381,6 +394,9 @@ void get_triangles_and_edge_matrices(void)
 	{
 		for (size_t j = 0; j < num_provinces_per_country; j++)
 		{
+			if (j % 1000 == 0)
+				cout << i << " " << j << endl;
+
 			vector<vertex_3> provincial_cities_vertices;
 
 			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
@@ -471,7 +487,9 @@ void get_triangles_and_edge_matrices(void)
 
 int main(int argc, char **argv)
 {
-	srand(0);// static_cast<unsigned int>(time(0)));
+	srand(static_cast<unsigned int>(time(0)));
+
+	cout << "Reading cities.csv" << endl;
 
 	ifstream city_file("cities.csv");
 	string line;
@@ -515,7 +533,66 @@ int main(int argc, char **argv)
 	get_triangles_and_edge_matrices();
 
 
+	vector<size_t> cycle(federal_capitol_cities.size(), 0);
 
+	for (size_t i = 0; i < cycle.size(); i++)
+		cycle[i] = i;
+
+	cycle.push_back(0);
+
+	hamCycle(federal_capitols_graph, cycle);
+
+
+
+	//while (1)
+	//{
+	//	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+
+	//	for (size_t i = 0; i < cycle.size() - 2; i++)
+	//	{
+	//		if (false == are_connected(cycle[i], cycle[i + 1], federal_capitols_graph))
+	//		{
+	//			bool found_swap = false;
+
+	//			vector<size_t> swaps;
+
+	//			for (size_t j = i + 2; j < cycle.size() - 1; j++)
+	//				if (true == are_connected(cycle[i], cycle[j], federal_capitols_graph))
+	//					swaps.push_back(j);
+
+	//			if (swaps.size() == 0)
+	//				break;
+	//			else
+	//			{
+	//				random_shuffle(swaps.begin(), swaps.end());
+	//				size_t temp = cycle[i + 1];
+	//				cycle[i + 1] = cycle[swaps[0]];
+	//				cycle[swaps[0]] = temp;
+	//			}
+	//		}
+	//	}
+
+
+	//	if (true == is_cycle_hamiltonian(cycle, federal_capitols_graph))
+	//	{
+	//		ofstream out_file("cycle.txt");
+
+	//		out_file << "Path" << endl;
+
+	//		for (size_t i = 0; i < cycle.size(); i++)
+	//			out_file << cycle[i] << endl;
+
+	//		//cout << endl;
+
+	//		break;
+	//	}
+	//	else
+	//	{
+	//		cout << "false" << endl;
+	//	}
+	//}
+
+	final_path = cycle;
 
 
 	glutInit(&argc, argv);
