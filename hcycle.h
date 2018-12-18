@@ -258,20 +258,14 @@ void try_getting_connected_string(vector<size_t> &cycle, const vector< vector<bo
 {
 	if (cycle.size() < 3)
 	{
-		cout << "invalid cycle" << endl;
+		cout << "Invalid cycle" << endl;
 		return;
 	}
 
-	cout << "shuffle" << endl;
 	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
 
-	cout << "looping" << endl;
 	for (size_t i = 0; i < cycle.size() - 2; i++)
 	{
-		//cout << i << " " << cycle.size() - 1 << endl;
-		//cout << graph.size() << " " << graph[0].size() << endl;
-		//cout << endl;
-
 		if (false == are_connected(cycle[i], cycle[i + 1], graph))
 		{
 			vector<size_t> swaps;
@@ -280,11 +274,8 @@ void try_getting_connected_string(vector<size_t> &cycle, const vector< vector<bo
 				if (true == are_connected(cycle[i], cycle[j], graph))
 					swaps.push_back(j);
 
-//			cout << swaps.size() << endl;
-
 			if (swaps.size() == 0)
 			{
-				cout << "no swaps" << endl;
 				return;
 			}
 			else
@@ -381,7 +372,7 @@ void draw_objects(void)
 
 	glBegin(GL_POINTS);
 
-	glColor4f(1.0f, 0.5f, 0.0f, 0.5f);
+	glColor4f(1.0f, 0.5f, 0.0f, 1.0f);
 
 	for (size_t i = 0; i < debug_vertices.size(); i++)
 		glVertex3f(debug_vertices[i].x, debug_vertices[i].y, debug_vertices[i].z);
@@ -425,7 +416,7 @@ void draw_objects(void)
 
 	glBegin(GL_LINE_STRIP);
 
-	glLineWidth(3);
+	glLineWidth(2);
 
 	glColor3f(0.0f, 0.5f, 1.0f);
 
@@ -617,25 +608,25 @@ void draw_objects(void)
 
 
 
-	glPointSize(1.0f);
+	//glPointSize(1.0f);
 
-	size_t colour_index = 0;
+	//size_t colour_index = 0;
 
-	for (size_t i = 0; i < provincial_cities.size(); i++)
-	{
-		for (size_t j = 0; j < provincial_cities[i].size(); j++)
-		{
-			glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
-			colour_index++;
+	//for (size_t i = 0; i < provincial_cities.size(); i++)
+	//{
+	//	for (size_t j = 0; j < provincial_cities[i].size(); j++)
+	//	{
+	//		glColor3f(province_colours[colour_index].x, province_colours[colour_index].y, province_colours[colour_index].z);
+	//		colour_index++;
 
-			glBegin(GL_POINTS);
+	//		glBegin(GL_POINTS);
 
-			for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
-				glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
+	//		for (size_t k = 0; k < provincial_cities[i][j].size(); k++)
+	//			glVertex3f(provincial_cities[i][j][k].x, provincial_cities[i][j][k].y, 0.0f);
 
-			glEnd();
-		}
-	}
+	//		glEnd();
+	//	}
+	//}
 
 
 
@@ -719,7 +710,7 @@ void draw_objects(void)
 
 
 
-	glLineWidth(3.0f);
+	glLineWidth(2.0f);
 
 	glBegin(GL_LINE_LOOP);
 
