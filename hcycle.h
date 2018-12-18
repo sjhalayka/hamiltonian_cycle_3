@@ -64,7 +64,7 @@ vector<vertex_3> country_colours;
 vector<vertex_3> province_colours;
 
 vector<vector<size_t> > cities_per_country;
-vector<size_t> country_per_city;
+vector<size_t> country_per_city;	
 
 vector<vector<size_t> > provinces_per_country;
 vector<size_t> country_per_province;
@@ -83,11 +83,31 @@ vector<vector<vector<vector<bool> > > > provincial_cities_graph;
 
 
 
+vector<vertex_3> debug_vertices;
+
+
+vector<size_t> s;
+
 
 vector<size_t> final_path;
 
-size_t num_countries = 17;// 60;
-size_t num_provinces_per_country = 17;// 60;
+size_t num_countries = 10;// 60;
+size_t num_provinces_per_country = 10;// 60;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -182,12 +202,37 @@ bool hamCycle(vector<vector<bool> > graph, vector<size_t> &path)
 
 bool are_connected(size_t index0, size_t index1, const vector< vector<bool> > &graph)
 {
+//	cout << "indices: " <<  index0 << " " << index1 << endl;
+
+	//cout << graph.size() << endl;
+
+	//for (size_t i = 0; i < graph[0].size(); i++)
+	//	cout << graph[i].size() << ' ';
+
+	//cout << endl;
+
+
 	if (graph[index0][index1] && graph[index1][index0])
 		return true;
 
 	return false;
 }
 
+bool is_cycle_connected(const vector<size_t> &cycle, const vector< vector<bool> > &graph)
+{
+	if (cycle.size() < 2)
+		return false;
+
+	for (size_t i = 0; i < cycle.size() - 1; i++)
+	{
+		bool conn = are_connected(cycle[i], cycle[i + 1], graph);
+
+		if (false == conn)
+			return false;
+	}
+
+	return true;
+}
 
 bool is_cycle_hamiltonian(const vector<size_t> &cycle, const vector< vector<bool> > &graph)
 {
@@ -207,6 +252,52 @@ bool is_cycle_hamiltonian(const vector<size_t> &cycle, const vector< vector<bool
 
 	return true;
 }
+
+
+void try_getting_connected_string(vector<size_t> &cycle, const vector< vector<bool> > &graph)
+{
+	if (cycle.size() < 3)
+	{
+		cout << "invalid cycle" << endl;
+		return;
+	}
+
+	cout << "shuffle" << endl;
+	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+
+	cout << "looping" << endl;
+	for (size_t i = 0; i < cycle.size() - 2; i++)
+	{
+		//cout << i << " " << cycle.size() - 1 << endl;
+		//cout << graph.size() << " " << graph[0].size() << endl;
+		//cout << endl;
+
+		if (false == are_connected(cycle[i], cycle[i + 1], graph))
+		{
+			vector<size_t> swaps;
+
+			for (size_t j = i + 2; j < cycle.size() - 1; j++)
+				if (true == are_connected(cycle[i], cycle[j], graph))
+					swaps.push_back(j);
+
+//			cout << swaps.size() << endl;
+
+			if (swaps.size() == 0)
+			{
+				cout << "no swaps" << endl;
+				return;
+			}
+			else
+			{
+				random_shuffle(swaps.begin(), swaps.end());
+				size_t temp = cycle[i + 1];
+				cycle[i + 1] = cycle[swaps[0]];
+				cycle[swaps[0]] = temp;
+			}
+		}
+	}
+}
+
 
 void get_n_distinct_indices(size_t n, size_t count, vector<size_t> &out, std::mt19937 &g)
 {
@@ -286,7 +377,22 @@ void draw_objects(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPointSize(1.0f);
+	glPointSize(20.0f);
+
+	glBegin(GL_POINTS);
+
+	glColor4f(1.0f, 0.5f, 0.0f, 0.5f);
+
+	for (size_t i = 0; i < debug_vertices.size(); i++)
+		glVertex3f(debug_vertices[i].x, debug_vertices[i].y, debug_vertices[i].z);
+
+	glEnd();
+
+
+
+
+
+
 
 
 
@@ -294,7 +400,7 @@ void draw_objects(void)
 
 	glBegin(GL_LINES);
 
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
 	for (size_t i = 0; i < federal_capitol_tris.size(); i++)
 	{
@@ -312,6 +418,24 @@ void draw_objects(void)
 	glEnd();
 
 
+
+
+
+
+
+	glBegin(GL_LINE_STRIP);
+
+	glLineWidth(3);
+
+	glColor3f(0.0f, 0.5f, 1.0f);
+
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		city c = provincial_capitol_cities[0][s[i]];
+		glVertex3f(c.x, c.y, 0);
+	}
+
+	glEnd();
 
 
 
@@ -375,7 +499,7 @@ void draw_objects(void)
 
 	size_t country_colour_index = 0;
 
-	for (size_t i = 0; i < countries.size(); i++)
+	for (size_t i = 0; i < 1/*countries.size()*/; i++)
 	{
 		glColor3f(country_colours[country_colour_index].x, country_colours[country_colour_index].y, country_colours[country_colour_index].z);
 		country_colour_index++;
@@ -512,6 +636,7 @@ void draw_objects(void)
 			glEnd();
 		}
 	}
+
 
 
 	//glPointSize(4.0f);

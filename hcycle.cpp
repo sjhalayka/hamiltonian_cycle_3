@@ -74,7 +74,7 @@ void populate_globe(void)
 	}
 
 	cout << "Getting provinces" << endl;
-	
+
 	// Break up into provinces
 	provincial_capitol_cities.resize(num_provinces_per_country);
 
@@ -114,8 +114,8 @@ void populate_globe(void)
 		// For each city in the country
 		for (size_t j = 0; j < federal_cities[i].size(); j++)
 		{
-			if(j % 1000 == 0)
-			cout << i << " " << j << endl;
+			if (j % 1000 == 0)
+				cout << i << " " << j << endl;
 
 			float closest_distance = 1e20f;
 			size_t closest_province_id = 0;
@@ -540,59 +540,187 @@ int main(int argc, char **argv)
 
 	cycle.push_back(0);
 
-	hamCycle(federal_capitols_graph, cycle);
+	//hamCycle(federal_capitols_graph, cycle);
+
+
+	// Get countries' path
+	while (1)
+	{
+		try_getting_connected_string(cycle, federal_capitols_graph);
+
+		if (true == is_cycle_hamiltonian(cycle, federal_capitols_graph))
+			break;
+		else
+			cout << "Could not find connected string for countries. Retrying." << endl;
+	}
+
+	final_path = cycle;
+
+	//cycle.pop_back();
+
+	// For each country, A
+	// Get two connected bordering countries, B and C
+
+	size_t forward_index = 0;
+	size_t backward_index = 0;
+	size_t curr_index = 0;
+	float forward_closest_distance = 1e20f;
+	size_t forward_closest_province_id = 0;
+	float backward_closest_distance = 1e20f;
+	size_t backward_closest_province_id = 0;
+
+	// for n = 0
+	forward_index = cycle[1];
+	backward_index = cycle[cycle.size() - 1];
+
+	for (size_t i = 0; i < num_provinces_per_country; i++)
+	{
+		forward_closest_distance = 1e20f;
+		forward_closest_province_id = 0;
+
+		vertex_3 provincial_capitol_centre;
+
+		// For each provincial capitol in A
+		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+		{
+			// Find forward provincial capitol location
+			provincial_capitol_centre.x = all_cities[provincial_capitol_cities[0][j].id].x;
+			provincial_capitol_centre.y = all_cities[provincial_capitol_cities[0][j].id].y;
+
+			// Measure distance, finding the shortest distance
+			float forward_distance =
+				sqrtf(powf(provincial_capitol_centre.x - federal_capitol_cities[forward_index].x, 2.0f) +
+					powf(provincial_capitol_centre.y - federal_capitol_cities[forward_index].y, 2.0f));
+
+			if (forward_distance <= forward_closest_distance)
+			{
+				forward_closest_distance = forward_distance;
+				forward_closest_province_id = j;
+			}
+		}
+
+		backward_closest_distance = 1e20f;
+		backward_closest_province_id = 0;
+
+		// For each provincial capitol in A
+		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+		{
+			// Find backward provincial capitol location
+			provincial_capitol_centre.x = all_cities[provincial_capitol_cities[0][j].id].x;
+			provincial_capitol_centre.y = all_cities[provincial_capitol_cities[0][j].id].y;
+
+			// Measure distance, finding the shortest distance
+			float backward_distance =
+				sqrtf(powf(provincial_capitol_centre.x - federal_capitol_cities[backward_index].x, 2.0f) +
+					powf(provincial_capitol_centre.y - federal_capitol_cities[backward_index].y, 2.0f));
+
+			if (backward_distance <= backward_closest_distance)
+			{
+				backward_closest_distance = backward_distance;
+				backward_closest_province_id = j;
+			}
+		}
+	}
+
+	s.push_back(provinces[backward_closest_province_id].id);
+
+	for (size_t i = 0; i < provincial_capitol_cities[0].size(); i++)
+	{
+		size_t id = provinces[i].id;
+
+		if (id != provinces[backward_closest_province_id].id && id != provinces[forward_closest_province_id].id)
+			s.push_back(id);
+	}
+
+	s.push_back(provinces[forward_closest_province_id].id);
+
+	while (1)
+	{
+		try_getting_connected_string(s, provincial_capitols_graph[0]);
+
+		if (true == is_cycle_connected(s, provincial_capitols_graph[0]))
+		{
+			cout << "cycle connected" << endl;
+			break;
+		}
+		else
+			cout << "Could not find connected string for provinces. Retrying." << endl;
+	}
+
+	cout << "done" << endl;
+
+	vertex_3 debug_vertex;
+	debug_vertex.x = all_cities[provincial_capitol_cities[0][backward_closest_province_id].id].x;
+	debug_vertex.y = all_cities[provincial_capitol_cities[0][backward_closest_province_id].id].y;
+	debug_vertices.push_back(debug_vertex);
+
+	debug_vertex.x = all_cities[provincial_capitol_cities[0][forward_closest_province_id].id].x;
+	debug_vertex.y = all_cities[provincial_capitol_cities[0][forward_closest_province_id].id].y;
+	debug_vertices.push_back(debug_vertex);
 
 
 
-	//while (1)
+	//for (size_t n = 1; n < num_countries; n++)
 	//{
-	//	random_shuffle(cycle.begin() + 1, cycle.end() - 1);
+	//	forward_index = cycle[1];
+	//	backward_index = cycle[cycle.size() - 1];
 
-	//	for (size_t i = 0; i < cycle.size() - 2; i++)
+	//	for (size_t i = 0; i < num_provinces_per_country; i++)
 	//	{
-	//		if (false == are_connected(cycle[i], cycle[i + 1], federal_capitols_graph))
+	//		forward_closest_distance = 1e20f;
+	//		forward_closest_province_id = 0;
+
+	//		vertex_3 provincial_capitol_centre;
+
+	//		// For each provincial capitol in A
+	//		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
 	//		{
-	//			bool found_swap = false;
+	//			// Find forward provincial capitol location
+	//			provincial_capitol_centre.x = all_cities[provincial_capitol_cities[n][j].id].x;
+	//			provincial_capitol_centre.y = all_cities[provincial_capitol_cities[n][j].id].y;
 
-	//			vector<size_t> swaps;
+	//			// Measure distance, finding the shortest distance
+	//			float forward_distance =
+	//				sqrtf(powf(provincial_capitol_centre.x - federal_capitol_cities[forward_index].x, 2.0f) +
+	//					powf(provincial_capitol_centre.y - federal_capitol_cities[forward_index].y, 2.0f));
 
-	//			for (size_t j = i + 2; j < cycle.size() - 1; j++)
-	//				if (true == are_connected(cycle[i], cycle[j], federal_capitols_graph))
-	//					swaps.push_back(j);
-
-	//			if (swaps.size() == 0)
-	//				break;
-	//			else
+	//			if (forward_distance <= forward_closest_distance)
 	//			{
-	//				random_shuffle(swaps.begin(), swaps.end());
-	//				size_t temp = cycle[i + 1];
-	//				cycle[i + 1] = cycle[swaps[0]];
-	//				cycle[swaps[0]] = temp;
+	//				forward_closest_distance = forward_distance;
+	//				forward_closest_province_id = j;
 	//			}
 	//		}
-	//	}
 
+	//		backward_closest_distance = 1e20f;
+	//		backward_closest_province_id = 0;
 
-	//	if (true == is_cycle_hamiltonian(cycle, federal_capitols_graph))
-	//	{
-	//		ofstream out_file("cycle.txt");
+	//		// For each provincial capitol in A
+	//		for (size_t j = 0; j < provincial_capitol_cities[i].size(); j++)
+	//		{
+	//			// Find backward provincial capitol location
+	//			provincial_capitol_centre.x = all_cities[provincial_capitol_cities[n][j].id].x;
+	//			provincial_capitol_centre.y = all_cities[provincial_capitol_cities[n][j].id].y;
 
-	//		out_file << "Path" << endl;
+	//			// Measure distance, finding the shortest distance
+	//			float backward_distance =
+	//				sqrtf(powf(provincial_capitol_centre.x - federal_capitol_cities[backward_index].x, 2.0f) +
+	//					powf(provincial_capitol_centre.y - federal_capitol_cities[backward_index].y, 2.0f));
 
-	//		for (size_t i = 0; i < cycle.size(); i++)
-	//			out_file << cycle[i] << endl;
+	//			if (backward_distance <= backward_closest_distance)
+	//			{
+	//				backward_closest_distance = backward_distance;
+	//				backward_closest_province_id = j;
+	//			}
+	//		}
 
-	//		//cout << endl;
+	//		// Use these two provincial capitols in A as ends of a string that goes through
+	//		// all of the provincial capitols in A.
 
-	//		break;
-	//	}
-	//	else
-	//	{
-	//		cout << "false" << endl;
 	//	}
 	//}
 
-	final_path = cycle;
+
+
 
 
 	glutInit(&argc, argv);
@@ -871,5 +999,3 @@ void passive_motion_func(int x, int y)
 	mouse_x = x;
 	mouse_y = y;
 }
-
-
